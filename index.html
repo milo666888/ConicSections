@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>圓錐曲線 3D 精確解析教具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
         body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
         
-        /* 1. 左側面板：窄化設計 */
+        /* --- [電腦版：完全維持原始設計] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
             background: rgba(15, 15, 15, 0.98); padding: 12px; 
@@ -27,18 +28,56 @@
         }
         input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
 
-        /* 2. 公司 LOGO：再次縮小至 70px */
         #company-logo {
             position: absolute; bottom: 15px; left: 15px;
             width: 70px; height: auto; z-index: 20;
             pointer-events: none;
         }
 
-        /* 3. 右下角截面圖形預覽 */
         #preview-box { 
             position: absolute; bottom: 20px; right: 20px; 
             background: rgba(0,0,0,0.92); padding: 12px; 
             border-radius: 8px; border: 1px solid #555; 
+        }
+
+        /* 預設隱藏手機專用按鈕 */
+        #mobile-settings-icon { display: none; }
+
+        /* --- [手機版：Media Query 覆蓋設計] --- */
+        @media (max-width: 768px) {
+            /* 1. 數據直接顯示在畫面上 (懸浮半透明) */
+            #ui {
+                width: 145px; height: auto; bottom: auto;
+                background: rgba(15, 15, 15, 0.6); 
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 0 0 12px 0; padding: 10px;
+            }
+            .type-label { font-size: 1.1em; margin: 5px 0 10px 0; padding: 5px; }
+            .param-group { margin-bottom: 8px; padding-bottom: 4px; }
+            label { font-size: 10px; }
+
+            /* 2. 截面圖形移至右上角並縮小 */
+            #preview-box {
+                bottom: auto; top: 15px; right: 15px;
+                padding: 6px; background: rgba(0,0,0,0.7);
+            }
+            #preview-box div { font-size: 11px !important; margin-bottom: 4px !important; }
+            #pCanvas { width: 100px !important; height: 100px !important; }
+
+            /* 3. LOGO 移至右下角 */
+            #company-logo {
+                position: fixed; left: auto; right: 15px; bottom: 15px;
+                width: 42px; opacity: 1; z-index: 100;
+            }
+
+            /* 4. ⚙️ 設定 ICON 與 LOGO 並列 */
+            #mobile-settings-icon {
+                display: flex; position: fixed; right: 65px; bottom: 15px;
+                width: 42px; height: 42px; background: #00ffcc; border-radius: 50%;
+                align-items: center; justify-content: center; z-index: 100;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; 
+                font-size: 1.3rem; color: #000;
+            }
         }
     </style>
 </head>
@@ -73,6 +112,8 @@
     </div>
 </div>
 
+<div id="mobile-settings-icon">⚙️</div>
+
 <img id="company-logo" src="company-logo.png" alt="Company Logo">
 
 <div id="preview-box">
@@ -86,8 +127,10 @@
 <script>
     // --- 3D 場景建置 ---
     const scene = new THREE.Scene();
-    // 初始視角調遠一些，讓圓錐看起來適中
-    const camera = new THREE.PerspectiveCamera(45, (window.innerWidth-210)/window.innerHeight, 0.1, 1000);
+    // 維持原始 Aspect Ratio 計算邏輯
+    const isMobile = window.innerWidth <= 768;
+    const aspect = isMobile ? (window.innerWidth / window.innerHeight) : ((window.innerWidth - 210) / window.innerHeight);
+    const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -107,13 +150,13 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 初始攝影機位置
     camera.position.set(25, 18, 25);
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
+    // --- 核心邏輯 (完全保留原始運算) ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -121,22 +164,20 @@
         const py = parseFloat(document.getElementById('yN').value);
         const pz = parseFloat(document.getElementById('zN').value);
 
-        // 雙圓錐：頂點在原點
         if (topCone) { scene.remove(topCone); scene.remove(bottomCone); }
         const radA = a * Math.PI/180;
-        const h = 12; // 圓錐高度適度減小
+        const h = 12; 
         const geom = new THREE.ConeGeometry(h*Math.tan(radA), h, 128, 1, true);
         geom.translate(0, -h/2, 0); 
         topCone = new THREE.Mesh(geom, coneMat);
         bottomCone = new THREE.Mesh(geom, coneMat); bottomCone.rotation.x = Math.PI;
         scene.add(topCone, bottomCone);
 
-        // 平面角度：beta 為平面與對稱軸 L 之夾角
         const radB_rot = (90 - b) * (Math.PI/180);
         planeGroup.rotation.x = radB_rot;
         planeGroup.position.set(px, py, pz);
 
-        // 判定邏輯
+        // 判定邏輯 (原始數學公式)
         const eb = b > 90 ? 180 - b : b;
         const nx = 0, ny = Math.cos(radB_rot), nz = Math.sin(radB_rot);
         const dist = Math.abs(px*0 + py*ny + pz*nz); 
@@ -145,12 +186,10 @@
 
         let type = "";
         if (passV) {
-            // 通過頂點 V
             if (Math.abs(eb - a) < tol) type = "一條直線";
             else if (eb > a) type = "一個點";
             else type = "兩相交直線";
         } else {
-            // 一般情形
             if (Math.abs(eb - 90) < tol) type = "圓";
             else if (eb > a) type = "橢圓";
             else if (Math.abs(eb - a) < tol) type = "拋物線";
@@ -160,7 +199,6 @@
         draw2D(type, a, eb, dist);
     }
 
-    // --- 2D 解析圖形繪製 ---
     function draw2D(type, aDeg, bDeg, dist) {
         const canvas = document.getElementById('pCanvas');
         const ctx = canvas.getContext('2d');
@@ -207,7 +245,7 @@
                 }
                 ctx.stroke();
             };
-            drawBranch(1); drawBranch(-1); // 左右雙支繪製
+            drawBranch(1); drawBranch(-1);
         }
     }
 
@@ -215,6 +253,14 @@
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
         s.addEventListener('input', () => { n.value = s.value; update(); });
         n.addEventListener('change', () => { s.value = n.value; update(); });
+    });
+
+    window.addEventListener('resize', () => {
+        const isMobileNow = window.innerWidth <= 768;
+        const aspectNow = isMobileNow ? (window.innerWidth / window.innerHeight) : ((window.innerWidth - 210) / window.innerHeight);
+        camera.aspect = aspectNow;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
     function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
