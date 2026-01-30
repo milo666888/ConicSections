@@ -8,9 +8,9 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
         
-        /* 全域大標題 */
+        /* --- [標題樣式] --- */
         .main-title {
-            position: absolute; top: 20px; left: 20px; z-index: 100;
+            position: absolute; top: 15px; left: 15px; z-index: 100;
             font-size: 1.5em; font-weight: bold; color: #00ffcc;
             text-shadow: 0 0 10px rgba(0,255,204,0.5);
             pointer-events: none;
@@ -19,15 +19,14 @@
         /* --- [1. 電腦版佈局] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 70px 15px 15px 15px; /* 預留上方給標題 */
+            background: rgba(15, 15, 15, 0.98); padding: 70px 15px 15px 15px; 
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
-        /* 小字級數據設定標題 */
         .section-title {
-            font-size: 0.9em; color: #999; margin-bottom: 12px;
-            border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
-            opacity: 0.8;
+            font-size: 0.85em; color: #888; margin-bottom: 12px;
+            border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            letter-spacing: 1px;
         }
         .type-label { 
             font-size: 1.2em; color: #00ffcc; text-align: center; 
@@ -41,7 +40,11 @@
             width: 55px; background: #222; border: 1px solid #555; 
             color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
         }
-        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; touch-action: pan-y; }
+        /* 核心關鍵：CSS 輔助防誤觸 */
+        input[type=range] { 
+            width: 100%; margin: 5px 0; cursor: pointer; 
+            touch-action: pan-y; /* 告訴瀏覽器上下滑動優先用於捲動 */
+        }
 
         #company-logo {
             position: absolute; bottom: 15px; left: 15px;
@@ -58,19 +61,17 @@
 
         /* --- [2. 📱 手機版佈局 (65/35)] --- */
         @media (max-width: 768px) {
-            /* 手機標題：左上角 */
-            .main-title { left: 15px; top: 15px; font-size: 1.4em; transform: none; }
+            .main-title { left: 15px; top: 15px; font-size: 1.3em; transform: none; }
 
-            /* 圖片區 */
             canvas { height: 65vh !important; }
 
-            /* LOGO：右上角 */
+            /* LOGO 移至右上角 */
             #company-logo {
                 top: 15px; right: 15px; bottom: auto; left: auto;
                 width: 38px; opacity: 0.9; z-index: 100;
             }
 
-            /* 左下數據區 */
+            /* 左下數據調整區 */
             #ui {
                 top: 65vh; left: 0; width: 60%; height: 35vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
@@ -78,9 +79,9 @@
                 border-radius: 0; overflow-y: auto; 
                 touch-action: pan-y; 
             }
-            .section-title { font-size: 0.85em; margin-bottom: 8px; }
+            .section-title { font-size: 0.8em; margin-bottom: 8px; }
 
-            /* 右下預覽區 */
+            /* 右下截面預覽區 */
             #preview-box {
                 top: 65vh; right: 0; left: auto; 
                 width: 40%; height: 35vh;
@@ -106,27 +107,27 @@
 
     <div class="param-group">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
-        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30">
+        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
-        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90">
+        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>垂直位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
-        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0">
+        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>水平位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0">
+        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>前後位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
-        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0">
+        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
     </div>
 </div>
 
@@ -167,7 +168,7 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 手機版相機調近，圓錐變大
+    // 相機視距校正：手機版一開始看圓錐的大小
     if (isMobile) {
         camera.position.set(28, 18, 28); 
     } else {
@@ -268,12 +269,43 @@
         }
     }
 
+    // --- [核心：防誤觸磁吸滑動邏輯] ---
     params.forEach(p => {
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
-        s.addEventListener('input', () => { n.value = s.value; update(); });
+        
+        let startX, startY, isScrolling = false;
+
+        s.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isScrolling = false;
+        }, { passive: true });
+
+        s.addEventListener('touchmove', (e) => {
+            const deltaX = Math.abs(e.touches[0].clientX - startX);
+            const deltaY = Math.abs(e.touches[0].clientY - startY);
+            
+            // 如果垂直位移大於水平位移，判定為捲動，禁止滑桿更新
+            if (deltaY > deltaX && !isScrolling) {
+                isScrolling = true;
+            }
+            
+            if (isScrolling) {
+                // 如果是在捲動中，停止事件傳遞，滑桿就不會動
+                e.stopPropagation();
+            }
+        }, { passive: false });
+
+        s.addEventListener('input', (e) => {
+            if (isScrolling) {
+                e.preventDefault(); 
+                s.value = n.value; // 強制將值拉回原本的數值，防止跳動
+                return;
+            }
+            n.value = s.value; update();
+        });
+
         n.addEventListener('change', () => { s.value = n.value; update(); });
-        // 防止移動滑桿時誤動到捲軸 (JS層級保護)
-        s.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: false });
     });
 
     window.addEventListener('resize', () => {
