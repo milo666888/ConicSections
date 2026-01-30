@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>圓錐曲線 3D 精確解析教具</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
+        
+        /* 1. 左側面板：窄化設計 */
+        #ui { 
+            position: absolute; top: 0; left: 0; bottom: 0;
+            background: rgba(15, 15, 15, 0.98); padding: 12px; 
+            width: 210px; border-right: 1px solid #444; 
+            z-index: 10; overflow-y: auto; 
+        }
+        .type-label { 
+            font-size: 1.3em; color: #00ffcc; text-align: center; 
+            font-weight: bold; padding: 8px; border: 2px solid #00ffcc; 
+            border-radius: 5px; margin: 10px 0 20px 0; background: #000;
+        }
+        .param-group { margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        label { font-size: 11px; color: #999; }
+        input[type=number] { 
+            width: 55px; background: #222; border: 1px solid #555; 
+            color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
+        }
+        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
+
+        /* 2. 公司 LOGO：再次縮小至 70px */
+        #company-logo {
+            position: absolute; bottom: 15px; left: 15px;
+            width: 70px; height: auto; z-index: 20;
+            pointer-events: none;
+        }
+
+        /* 3. 右下角截面圖形預覽 */
+        #preview-box { 
+            position: absolute; bottom: 20px; right: 20px; 
+            background: rgba(0,0,0,0.92); padding: 12px; 
+            border-radius: 8px; border: 1px solid #555; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div class="type-label" id="curveType">圓</div>
+
+    <div class="param-group">
+        <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
+        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30">
+    </div>
+
+    <div class="param-group">
+        <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
+        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90">
+    </div>
+
+    <div class="param-group">
+        <div class="label-row"><label>垂直位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
+        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0">
+    </div>
+
+    <div class="param-group">
+        <div class="label-row"><label>水平位移 (X):</label><input type="number" id="xN" value="0.0"></div>
+        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0">
+    </div>
+
+    <div class="param-group">
+        <div class="label-row"><label>前後位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
+        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0">
+    </div>
+</div>
+
+<img id="company-logo" src="company-logo.png" alt="Company Logo">
+
+<div id="preview-box">
+    <div style="font-size: 13px; margin-bottom:8px; text-align:center; color:#00ffcc; font-weight:bold;">截面圖形</div>
+    <canvas id="pCanvas" width="220" height="220"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    // --- 3D 場景建置 ---
+    const scene = new THREE.Scene();
+    // 初始視角調遠一些，讓圓錐看起來適中
+    const camera = new THREE.PerspectiveCamera(45, (window.innerWidth-210)/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.GridHelper(30, 60, 0x222222, 0x222222));
+
+    let topCone, bottomCone;
+    const coneMat = new THREE.MeshPhongMaterial({ color: 0x3498db, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+    const planeGroup = new THREE.Group();
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
+    plane.rotation.x = Math.PI/2;
+    planeGroup.add(plane);
+    scene.add(planeGroup);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(10, 20, 10);
+    scene.add(light);
+
+    // 初始攝影機位置
+    camera.position.set(25, 18, 25);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0);
+
+    const params = ['alpha', 'beta', 'x', 'y', 'z'];
+    
+    function update() {
+        const a = parseFloat(document.getElementById('alphaN').value);
+        const b = parseFloat(document.getElementById('betaN').value);
+        const px = parseFloat(document.getElementById('xN').value);
+        const py = parseFloat(document.getElementById('yN').value);
+        const pz = parseFloat(document.getElementById('zN').value);
+
+        // 雙圓錐：頂點在原點
+        if (topCone) { scene.remove(topCone); scene.remove(bottomCone); }
+        const radA = a * Math.PI/180;
+        const h = 12; // 圓錐高度適度減小
+        const geom = new THREE.ConeGeometry(h*Math.tan(radA), h, 128, 1, true);
+        geom.translate(0, -h/2, 0); 
+        topCone = new THREE.Mesh(geom, coneMat);
+        bottomCone = new THREE.Mesh(geom, coneMat); bottomCone.rotation.x = Math.PI;
+        scene.add(topCone, bottomCone);
+
+        // 平面角度：beta 為平面與對稱軸 L 之夾角
+        const radB_rot = (90 - b) * (Math.PI/180);
+        planeGroup.rotation.x = radB_rot;
+        planeGroup.position.set(px, py, pz);
+
+        // 判定邏輯
+        const eb = b > 90 ? 180 - b : b;
+        const nx = 0, ny = Math.cos(radB_rot), nz = Math.sin(radB_rot);
+        const dist = Math.abs(px*0 + py*ny + pz*nz); 
+        const passV = dist < 0.08;
+        const tol = 0.1;
+
+        let type = "";
+        if (passV) {
+            // 通過頂點 V
+            if (Math.abs(eb - a) < tol) type = "一條直線";
+            else if (eb > a) type = "一個點";
+            else type = "兩相交直線";
+        } else {
+            // 一般情形
+            if (Math.abs(eb - 90) < tol) type = "圓";
+            else if (eb > a) type = "橢圓";
+            else if (Math.abs(eb - a) < tol) type = "拋物線";
+            else type = "雙曲線";
+        }
+        document.getElementById('curveType').innerText = type;
+        draw2D(type, a, eb, dist);
+    }
+
+    // --- 2D 解析圖形繪製 ---
+    function draw2D(type, aDeg, bDeg, dist) {
+        const canvas = document.getElementById('pCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,220,220);
+        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 2.5; ctx.fillStyle = "#00ffcc";
+        const mid = 110, scale = 25;
+        const alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
+
+        if (type === "圓") {
+            ctx.beginPath(); ctx.arc(mid, mid, Math.abs(dist * Math.tan(alpha) * scale), 0, Math.PI*2); ctx.stroke();
+        } else if (type === "一個點") {
+            ctx.beginPath(); ctx.arc(mid, mid, 4, 0, Math.PI*2); ctx.fill();
+        } else if (type === "一條直線") {
+            ctx.beginPath(); ctx.moveTo(mid, 10); ctx.lineTo(mid, 210); ctx.stroke();
+        } else if (type === "兩相交直線") {
+            ctx.beginPath(); const s = Math.tan(alpha);
+            ctx.moveTo(mid-100, mid-100*s); ctx.lineTo(mid+100, mid+100*s);
+            ctx.moveTo(mid+100, mid-100*s); ctx.lineTo(mid-100, mid+100*s);
+            ctx.stroke();
+        } else if (type === "橢圓") {
+            ctx.beginPath();
+            const e = Math.cos(beta) / Math.cos(alpha);
+            const a = Math.abs(dist * Math.sin(alpha)*Math.cos(alpha) / (Math.pow(Math.sin(beta),2) - Math.pow(Math.sin(alpha),2)));
+            const b = a * Math.sqrt(Math.abs(1 - e*e));
+            ctx.ellipse(mid, mid, a*scale, b*scale, 0, 0, Math.PI*2); ctx.stroke();
+        } else if (type === "拋物線") {
+            ctx.beginPath(); const p = Math.abs(dist * Math.sin(alpha));
+            for(let y = -100; y <= 100; y++) {
+                const x = (y*y) / (4 * p * scale || 1);
+                if(y === -100) ctx.moveTo(mid + x, mid + y);
+                else ctx.lineTo(mid + x, mid + y);
+            }
+            ctx.stroke();
+        } else if (type === "雙曲線") {
+            const e = Math.cos(beta) / Math.cos(alpha);
+            const a = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
+            const b = a * Math.sqrt(Math.abs(e*e - 1));
+            const drawBranch = (s) => {
+                ctx.beginPath(); let first = true;
+                for(let y = -100; y <= 100; y++) {
+                    const x = a * Math.sqrt(1 + Math.pow(y / (b * scale || 1), 2));
+                    if(first) { ctx.moveTo(mid + s * x * scale, mid + y); first = false; }
+                    else { ctx.lineTo(mid + s * x * scale, mid + y); }
+                }
+                ctx.stroke();
+            };
+            drawBranch(1); drawBranch(-1); // 左右雙支繪製
+        }
+    }
+
+    params.forEach(p => {
+        const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
+        s.addEventListener('input', () => { n.value = s.value; update(); });
+        n.addEventListener('change', () => { s.value = n.value; update(); });
+    });
+
+    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+    update(); animate();
+</script>
+</body>
+</html>
