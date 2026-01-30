@@ -6,18 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
         
-        /* --- [1. 電腦版樣式：完全維持您的佈局結構] --- */
+        /* 全域大標題 */
+        .main-title {
+            position: absolute; top: 20px; left: 20px; z-index: 100;
+            font-size: 1.5em; font-weight: bold; color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0,255,204,0.5);
+            pointer-events: none;
+        }
+
+        /* --- [1. 電腦版佈局] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 15px; 
+            background: rgba(15, 15, 15, 0.98); padding: 70px 15px 15px 15px; /* 預留上方給標題 */
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
+        /* 小字級數據設定標題 */
         .section-title {
-            font-size: 1.1em; color: #999; margin-bottom: 15px;
+            font-size: 0.9em; color: #999; margin-bottom: 12px;
             border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            opacity: 0.8;
         }
         .type-label { 
             font-size: 1.2em; color: #00ffcc; text-align: center; 
@@ -31,7 +41,7 @@
             width: 55px; background: #222; border: 1px solid #555; 
             color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
         }
-        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
+        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; touch-action: pan-y; }
 
         #company-logo {
             position: absolute; bottom: 15px; left: 15px;
@@ -43,32 +53,34 @@
             position: absolute; bottom: 20px; right: 20px; 
             background: rgba(0,0,0,0.92); padding: 10px; 
             border-radius: 8px; border: 1px solid #555; z-index: 5;
+            display: flex; flex-direction: column;
         }
 
-        /* --- [2. 📱 手機版樣式：65/35 佈局重構] --- */
+        /* --- [2. 📱 手機版佈局 (65/35)] --- */
         @media (max-width: 768px) {
-            /* 圖片區：佔 65vh */
+            /* 手機標題：左上角 */
+            .main-title { left: 15px; top: 15px; font-size: 1.4em; transform: none; }
+
+            /* 圖片區 */
             canvas { height: 65vh !important; }
 
-            /* LOGO 固定右上角 */
+            /* LOGO：右上角 */
             #company-logo {
                 top: 15px; right: 15px; bottom: auto; left: auto;
                 width: 38px; opacity: 0.9; z-index: 100;
             }
 
-            /* 左下數據設定區：佔 35vh */
+            /* 左下數據區 */
             #ui {
                 top: 65vh; left: 0; width: 60%; height: 35vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 10px 10px 40px 10px;
+                padding: 12px 10px 40px 10px;
                 border-radius: 0; overflow-y: auto; 
                 touch-action: pan-y; 
             }
-            .section-title { font-size: 0.95em; margin-bottom: 10px; }
-            .param-group { margin-bottom: 6px; padding-bottom: 5px; }
-            label { font-size: 10px; }
+            .section-title { font-size: 0.85em; margin-bottom: 8px; }
 
-            /* 右下截面預覽區：佔 35vh */
+            /* 右下預覽區 */
             #preview-box {
                 top: 65vh; right: 0; left: auto; 
                 width: 40%; height: 35vh;
@@ -76,19 +88,18 @@
                 padding: 0; justify-content: flex-start; align-items: stretch;
                 border-radius: 0;
             }
-            .type-label { 
-                font-size: 1em; padding: 6px; margin-bottom: 0;
-                background: #111; border-bottom: 1px solid #222;
-            }
+            .type-label { font-size: 1em; padding: 6px; margin-bottom: 0; background: #111; }
             #preview-container { 
                 flex: 1; display: flex; flex-direction: column; 
                 justify-content: center; align-items: center; padding: 5px;
             }
-            #pCanvas { width: 90% !important; height: auto !important; max-width: 120px; }
+            #pCanvas { width: 95% !important; height: auto !important; max-width: 110px; }
         }
     </style>
 </head>
 <body>
+
+<div class="main-title">圓錐曲線模型</div>
 
 <div id="ui">
     <div class="section-title">數據設定</div>
@@ -133,10 +144,8 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    // --- 3D 場景 ---
     const scene = new THREE.Scene();
     const isMobile = window.innerWidth <= 768;
-    // 使用 65% 高度比例進行相機校準
     const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.65)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -158,9 +167,9 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 初始視距：維持較遠的設定讓圓錐看起來適中
+    // 手機版相機調近，圓錐變大
     if (isMobile) {
-        camera.position.set(45, 30, 45); 
+        camera.position.set(28, 18, 28); 
     } else {
         camera.position.set(25, 18, 25);
     }
@@ -248,7 +257,7 @@
                 const e = Math.cos(beta) / Math.cos(alpha);
                 const a = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
                 const b = a * Math.sqrt(Math.abs(e*e - 1));
-                for(let y = -100; y <= 100; y++) {
+                for(let y = -95; y <= 95; y++) {
                     const x = a * Math.sqrt(1 + Math.pow(y / (b * scale || 1), 2));
                     if(first) { ctx.moveTo(mid + s * x * scale, mid + y); first = false; }
                     else { ctx.lineTo(mid + s * x * scale, mid + y); }
@@ -263,6 +272,8 @@
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
         s.addEventListener('input', () => { n.value = s.value; update(); });
         n.addEventListener('change', () => { s.value = n.value; update(); });
+        // 防止移動滑桿時誤動到捲軸 (JS層級保護)
+        s.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: false });
     });
 
     window.addEventListener('resize', () => {
