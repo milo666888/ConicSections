@@ -8,23 +8,24 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
         
-        /* 1. 大標題設計 */
+        /* 總標題設計 */
         .main-title {
             position: absolute; top: 18px; left: 18px; z-index: 100;
             font-size: 1.5em; font-weight: bold; color: #00ffcc;
             text-shadow: 0 0 10px rgba(0,255,204,0.5); pointer-events: none;
         }
 
-        /* --- [電腦版佈局] --- */
+        /* --- [1. 電腦版佈局] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; /* 留出大標題空間 */
+            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; 
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
         .section-title {
             font-size: 0.85em; color: #888; margin-bottom: 12px;
-            border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            opacity: 0.7;
         }
         .type-label { 
             font-size: 1.2em; color: #00ffcc; text-align: center; 
@@ -55,13 +56,14 @@
 
         /* --- [2. 📱 手機版佈局 (65/35)] --- */
         @media (max-width: 768px) {
-            .main-title { left: 15px; top: 15px; font-size: 1.4em; }
+            .main-title { left: 15px; top: 15px; font-size: 1.35em; }
 
             canvas { height: 65vh !important; }
 
+            /* LOGO 移至右上角 */
             #company-logo {
                 top: 15px; right: 15px; bottom: auto; left: auto;
-                width: 38px; opacity: 1; z-index: 100;
+                width: 38px; opacity: 0.9; z-index: 100;
             }
 
             #ui {
@@ -70,8 +72,8 @@
                 padding: 12px 10px 40px 10px;
                 border-radius: 0; overflow-y: auto; overflow-x: hidden;
             }
-            /* 讓手機滑桿區域更容易上下捲動而不誤觸 */
-            #ui { touch-action: pan-y; }
+            /* 優化手機捲動體驗 */
+            #ui { -webkit-overflow-scrolling: touch; }
 
             #preview-box {
                 top: 65vh; right: 0; left: auto; 
@@ -98,27 +100,27 @@
 
     <div class="param-group">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
-        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30" class="touch-safe">
+        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
-        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90" class="touch-safe">
+        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>垂直位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
-        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0" class="touch-safe">
+        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>水平位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0" class="touch-safe">
+        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>前後位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
-        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0" class="touch-safe">
+        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
     </div>
 </div>
 
@@ -136,7 +138,6 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    // --- 3D 場景 ---
     const scene = new THREE.Scene();
     const isMobile = window.innerWidth <= 768;
     const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.65)) : ((window.innerWidth - 210) / window.innerHeight);
@@ -160,9 +161,9 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // [修正] 手機版開場圓錐放大：攝影機距離調近
+    // [修正] 手機版圓錐一開始的大小：調回較遠的視距 (32)
     if (isMobile) {
-        camera.position.set(20, 15, 20); 
+        camera.position.set(32, 22, 32); 
     } else {
         camera.position.set(25, 18, 25);
     }
@@ -171,7 +172,6 @@
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
-    // --- 核心更新邏輯 ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -261,50 +261,45 @@
         }
     }
 
-    // --- [核心防誤觸邏輯] ---
+    // --- [核心：新版防誤觸與流暢滑動邏輯] ---
     params.forEach(p => {
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
         
-        let startX, startY, initVal, lockDirection = null;
+        let startX, startY, activeLock = null;
 
+        // 直接在滑桿上控制觸控權限
         s.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
-            initVal = s.value;
-            lockDirection = null; // 每次觸碰重置判定
+            activeLock = null; // 重置狀態
         }, { passive: true });
 
         s.addEventListener('touchmove', (e) => {
-            if (lockDirection === 'vertical') return; // 如果已經判定為垂直捲動，直接跳出
-
             const curX = e.touches[0].clientX;
             const curY = e.touches[0].clientY;
             const dx = Math.abs(curX - startX);
             const dy = Math.abs(curY - startY);
 
-            // 1. 判定方向
-            if (lockDirection === null) {
+            // 判斷手勢方向：5px 閾值
+            if (activeLock === null) {
                 if (dx > dy && dx > 5) {
-                    lockDirection = 'horizontal'; // 判定為調整數值
+                    activeLock = 'slide'; // 確定是左右滑滑桿
                 } else if (dy > dx && dy > 5) {
-                    lockDirection = 'vertical';   // 判定為捲動頁面
+                    activeLock = 'scroll'; // 確定是上下捲動頁面
                 }
             }
 
-            // 2. 執行鎖定
-            if (lockDirection === 'vertical') {
-                s.value = initVal; // 強制將數值拉回初始點，不准動
-            } else if (lockDirection === 'horizontal') {
-                // 如果是水平移動，禁止頁面捲動
+            if (activeLock === 'slide') {
+                // 如果是左右滑動，阻止頁面捲動，讓滑桿獲得焦點
                 if (e.cancelable) e.preventDefault();
+            } else if (activeLock === 'scroll') {
+                // 如果是捲動頁面，則不對滑桿做任何處理，讓原生捲動發生
             }
         }, { passive: false });
 
-        s.addEventListener('input', (e) => {
-            if (lockDirection === 'vertical') {
-                s.value = initVal; // 二次保險：如果是垂直捲動中，不准更新
-                return;
-            }
+        s.addEventListener('input', () => {
+            // 只有在滑動模式下才更新數據，捲動模式完全忽略
+            if (activeLock === 'scroll') return;
             n.value = s.value; update();
         });
 
