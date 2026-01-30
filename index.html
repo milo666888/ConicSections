@@ -8,7 +8,7 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
         
-        /* --- [1. 電腦版樣式：完全不動] --- */
+        /* --- [1. 電腦版樣式：完全維持您的原始設計] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
             background: rgba(15, 15, 15, 0.98); padding: 12px; 
@@ -41,36 +41,42 @@
             border-radius: 8px; border: 1px solid #555; z-index: 5;
         }
 
-        /* --- [2. 📱 手機版樣式：針對新指令重構] --- */
+        /* --- [2. 📱 手機版專屬樣式：精細空間優化] --- */
         @media (max-width: 768px) {
-            /* 3D 圖片區：佔上半部 55% */
-            canvas { height: 55vh !important; }
+            /* 3D 圖片區：佔 68vh */
+            canvas { height: 68vh !important; }
 
-            /* LOGO：移至右上角 */
+            /* LOGO 固定右上角 */
             #company-logo {
                 top: 15px; right: 15px; bottom: auto; left: auto;
-                width: 40px; opacity: 1; z-index: 100;
+                width: 38px; opacity: 0.9; z-index: 100;
             }
 
-            /* 左下數據調整區：佔下半部 60% 寬度，支援垂直滑動 */
+            /* 左下數據調整區：高度縮減，並解決誤觸滑桿與顯示不全問題 */
             #ui {
-                top: 55vh; left: 0; width: 60%; height: 45vh;
+                top: 68vh; left: 0; width: 65%; height: 32vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 12px; border-radius: 0; overflow-y: auto; overflow-x: hidden;
+                padding: 10px 10px 40px 10px; /* 增加底部 Padding 防止顯示不全 */
+                border-radius: 0; 
+                overflow-y: auto; 
+                touch-action: pan-y; /* 鎖定滑動行為，上下捲動時不誤觸滑桿 */
             }
-            .type-label { font-size: 1.1em; margin: 0 0 10px 0; padding: 4px; }
-            .param-group { margin-bottom: 8px; padding-bottom: 5px; }
+            .type-label { font-size: 0.95em; margin: 0 0 8px 0; padding: 3px; }
+            .param-group { margin-bottom: 5px; padding-bottom: 4px; }
+            label { font-size: 10px; color: #888; }
+            input[type=range] { margin: 2px 0; height: 18px; }
 
-            /* 右下截面預覽：佔下半部 40% 寬度，高度緊湊 */
+            /* 右下截面預覽：鎖定為正方形 */
             #preview-box {
-                top: 55vh; left: 60%; width: 40%; height: 45vh;
-                bottom: auto; right: auto;
-                background: #050505; border: none; border-top: 1px solid #333;
-                display: flex; flex-direction: column; justify-content: center; /* 讓內容垂直置中 */
-                align-items: center; padding: 0; 
+                top: 68vh; right: 0; left: auto; 
+                width: 35%; height: 32vh;
+                aspect-ratio: 1 / 1; /* 強制正方形佈局 */
+                background: #050505; border: none; border-top: 1px solid #333; border-left: 1px solid #333;
+                display: flex; flex-direction: column; justify-content: center; 
+                align-items: center; padding: 5px;
             }
-            #preview-box div { font-size: 11px !important; margin-bottom: 2px !important; }
-            #pCanvas { width: 95% !important; height: auto !important; max-width: 140px; }
+            #preview-box div { font-size: 10px !important; margin-bottom: 2px !important; color: #00ffcc; }
+            #pCanvas { width: 90% !important; height: auto !important; max-width: 110px; }
         }
     </style>
 </head>
@@ -108,7 +114,7 @@
 <img id="company-logo" src="company-logo.png" alt="Company Logo">
 
 <div id="preview-box">
-    <div style="font-size: 12px; margin-bottom:5px; text-align:center; color:#00ffcc; font-weight:bold;">截面圖形</div>
+    <div style="font-weight:bold;">截面圖形</div>
     <canvas id="pCanvas" width="220" height="220"></canvas>
 </div>
 
@@ -116,14 +122,11 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    // --- 3D 場景建置 ---
+    // --- 3D 場景 ---
     const scene = new THREE.Scene();
-    
-    // 判定是否為手機版以調整相機
     const isMobile = window.innerWidth <= 768;
-    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.55)) : ((window.innerWidth - 210) / window.innerHeight);
+    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.68)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-    
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -143,19 +146,17 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 初始攝影機視距：手機版調遠，讓圓錐一開始變小 (42, 28, 42)
+    // 視距調整：手機版一開始看圓錐的大小
     if (isMobile) {
-        camera.position.set(42, 28, 42);
+        camera.position.set(45, 30, 45); // 手機版拉得更遠一點
     } else {
         camera.position.set(25, 18, 25);
     }
-    
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
-    // --- 核心邏輯（完全保留您的原始運算） ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -201,20 +202,20 @@
         const canvas = document.getElementById('pCanvas');
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0,0,220,220);
-        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3; ctx.fillStyle = "#00ffcc";
+        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3.5; ctx.fillStyle = "#00ffcc";
         const mid = 110, scale = 25;
         const alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
 
         if (type === "圓") {
             ctx.beginPath(); ctx.arc(mid, mid, Math.abs(dist * Math.tan(alpha) * scale), 0, Math.PI*2); ctx.stroke();
         } else if (type === "一個點") {
-            ctx.beginPath(); ctx.arc(mid, mid, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(mid, mid, 6, 0, Math.PI*2); ctx.fill();
         } else if (type === "一條直線") {
-            ctx.beginPath(); ctx.moveTo(mid, 15); ctx.lineTo(mid, 205); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(mid, 20); ctx.lineTo(mid, 200); ctx.stroke();
         } else if (type === "兩相交直線") {
             ctx.beginPath(); const s = Math.tan(alpha);
-            ctx.moveTo(mid-90, mid-90*s); ctx.lineTo(mid+90, mid+90*s);
-            ctx.moveTo(mid+90, mid-90*s); ctx.lineTo(mid-90, mid+90*s);
+            ctx.moveTo(mid-100, mid-100*s); ctx.lineTo(mid+100, mid+100*s);
+            ctx.moveTo(mid+100, mid-100*s); ctx.lineTo(mid-100, mid+100*s);
             ctx.stroke();
         } else if (type === "橢圓") {
             ctx.beginPath();
@@ -224,10 +225,9 @@
             ctx.ellipse(mid, mid, a*scale, b*scale, 0, 0, Math.PI*2); ctx.stroke();
         } else if (type === "拋物線") {
             ctx.beginPath(); const p = Math.abs(dist * Math.sin(alpha));
-            for(let y = -95; y <= 95; y++) {
+            for(let y = -100; y <= 100; y++) {
                 const x = (y*y) / (4 * p * scale || 1);
-                if(y === -95) ctx.moveTo(mid + x, mid + y);
-                else ctx.lineTo(mid + x, mid + y);
+                if(y === -100) ctx.moveTo(mid + x, mid + y); else ctx.lineTo(mid + x, mid + y);
             }
             ctx.stroke();
         } else if (type === "雙曲線") {
@@ -236,7 +236,7 @@
                 const e = Math.cos(beta) / Math.cos(alpha);
                 const a = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
                 const b = a * Math.sqrt(Math.abs(e*e - 1));
-                for(let y = -95; y <= 95; y++) {
+                for(let y = -100; y <= 100; y++) {
                     const x = a * Math.sqrt(1 + Math.pow(y / (b * scale || 1), 2));
                     if(first) { ctx.moveTo(mid + s * x * scale, mid + y); first = false; }
                     else { ctx.lineTo(mid + s * x * scale, mid + y); }
@@ -255,7 +255,7 @@
 
     window.addEventListener('resize', () => {
         const isMob = window.innerWidth <= 768;
-        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.55)) : ((window.innerWidth - 210) / window.innerHeight);
+        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.68)) : ((window.innerWidth - 210) / window.innerHeight);
         camera.aspect = newAspect;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
