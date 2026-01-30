@@ -15,12 +15,10 @@
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
-        /* 新數據區標題樣式 */
         .section-title {
             font-size: 1.1em; color: #999; margin-bottom: 15px;
             border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
         }
-        /* 圖形名稱標籤：現在會配合預覽盒 */
         .type-label { 
             font-size: 1.2em; color: #00ffcc; text-align: center; 
             font-weight: bold; padding: 6px; border-bottom: 1px solid #333; 
@@ -45,13 +43,12 @@
             position: absolute; bottom: 20px; right: 20px; 
             background: rgba(0,0,0,0.92); padding: 10px; 
             border-radius: 8px; border: 1px solid #555; z-index: 5;
-            display: flex; flex-direction: column;
         }
 
-        /* --- [2. 📱 手機版樣式：75/25 佈局重構] --- */
+        /* --- [2. 📱 手機版樣式：65/35 佈局重構] --- */
         @media (max-width: 768px) {
-            /* 3D 圖片區：佔 75vh */
-            canvas { height: 75vh !important; }
+            /* 圖片區：佔 65vh */
+            canvas { height: 65vh !important; }
 
             /* LOGO 固定右上角 */
             #company-logo {
@@ -59,35 +56,35 @@
                 width: 38px; opacity: 0.9; z-index: 100;
             }
 
-            /* 左下數據設定區：佔 25vh */
+            /* 左下數據設定區：佔 35vh */
             #ui {
-                top: 75vh; left: 0; width: 60%; height: 25vh;
+                top: 65vh; left: 0; width: 60%; height: 35vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 10px 10px 30px 10px;
+                padding: 10px 10px 40px 10px;
                 border-radius: 0; overflow-y: auto; 
-                touch-action: pan-y; /* 確保上下移動時是滑動頁面而非誤觸數據 */
+                touch-action: pan-y; 
             }
-            .section-title { font-size: 0.9em; margin-bottom: 8px; }
-            .param-group { margin-bottom: 5px; padding-bottom: 4px; }
+            .section-title { font-size: 0.95em; margin-bottom: 10px; }
+            .param-group { margin-bottom: 6px; padding-bottom: 5px; }
             label { font-size: 10px; }
 
-            /* 右下截面預覽區：結合圖形名稱 */
+            /* 右下截面預覽區：佔 35vh */
             #preview-box {
-                top: 75vh; right: 0; left: auto; 
-                width: 40%; height: 25vh;
+                top: 65vh; right: 0; left: auto; 
+                width: 40%; height: 35vh;
                 background: #050505; border: none; border-top: 1px solid #333; border-left: 1px solid #333;
                 padding: 0; justify-content: flex-start; align-items: stretch;
                 border-radius: 0;
             }
             .type-label { 
-                font-size: 1em; padding: 5px; margin-bottom: 0;
+                font-size: 1em; padding: 6px; margin-bottom: 0;
                 background: #111; border-bottom: 1px solid #222;
             }
             #preview-container { 
                 flex: 1; display: flex; flex-direction: column; 
                 justify-content: center; align-items: center; padding: 5px;
             }
-            #pCanvas { width: 90% !important; height: auto !important; max-width: 100px; }
+            #pCanvas { width: 90% !important; height: auto !important; max-width: 120px; }
         }
     </style>
 </head>
@@ -139,8 +136,8 @@
     // --- 3D 場景 ---
     const scene = new THREE.Scene();
     const isMobile = window.innerWidth <= 768;
-    // 手機版使用 75% 高度比例計算
-    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.75)) : ((window.innerWidth - 210) / window.innerHeight);
+    // 使用 65% 高度比例進行相機校準
+    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.65)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -161,7 +158,7 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 初始視角校準
+    // 初始視距：維持較遠的設定讓圓錐看起來適中
     if (isMobile) {
         camera.position.set(45, 30, 45); 
     } else {
@@ -270,7 +267,7 @@
 
     window.addEventListener('resize', () => {
         const isMob = window.innerWidth <= 768;
-        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.75)) : ((window.innerWidth - 210) / window.innerHeight);
+        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.65)) : ((window.innerWidth - 210) / window.innerHeight);
         camera.aspect = newAspect;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
