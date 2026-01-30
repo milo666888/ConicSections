@@ -8,25 +8,23 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
         
-        /* --- [標題樣式] --- */
+        /* 1. 大標題設計 */
         .main-title {
-            position: absolute; top: 15px; left: 15px; z-index: 100;
+            position: absolute; top: 18px; left: 18px; z-index: 100;
             font-size: 1.5em; font-weight: bold; color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0,255,204,0.5);
-            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,255,204,0.5); pointer-events: none;
         }
 
-        /* --- [1. 電腦版佈局] --- */
+        /* --- [電腦版佈局] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 70px 15px 15px 15px; 
+            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; /* 留出大標題空間 */
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
         .section-title {
             font-size: 0.85em; color: #888; margin-bottom: 12px;
-            border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
-            letter-spacing: 1px;
+            border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
         }
         .type-label { 
             font-size: 1.2em; color: #00ffcc; text-align: center; 
@@ -40,11 +38,7 @@
             width: 55px; background: #222; border: 1px solid #555; 
             color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
         }
-        /* 核心關鍵：CSS 輔助防誤觸 */
-        input[type=range] { 
-            width: 100%; margin: 5px 0; cursor: pointer; 
-            touch-action: pan-y; /* 告訴瀏覽器上下滑動優先用於捲動 */
-        }
+        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
 
         #company-logo {
             position: absolute; bottom: 15px; left: 15px;
@@ -61,27 +55,24 @@
 
         /* --- [2. 📱 手機版佈局 (65/35)] --- */
         @media (max-width: 768px) {
-            .main-title { left: 15px; top: 15px; font-size: 1.3em; transform: none; }
+            .main-title { left: 15px; top: 15px; font-size: 1.4em; }
 
             canvas { height: 65vh !important; }
 
-            /* LOGO 移至右上角 */
             #company-logo {
                 top: 15px; right: 15px; bottom: auto; left: auto;
-                width: 38px; opacity: 0.9; z-index: 100;
+                width: 38px; opacity: 1; z-index: 100;
             }
 
-            /* 左下數據調整區 */
             #ui {
                 top: 65vh; left: 0; width: 60%; height: 35vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
                 padding: 12px 10px 40px 10px;
-                border-radius: 0; overflow-y: auto; 
-                touch-action: pan-y; 
+                border-radius: 0; overflow-y: auto; overflow-x: hidden;
             }
-            .section-title { font-size: 0.8em; margin-bottom: 8px; }
+            /* 讓手機滑桿區域更容易上下捲動而不誤觸 */
+            #ui { touch-action: pan-y; }
 
-            /* 右下截面預覽區 */
             #preview-box {
                 top: 65vh; right: 0; left: auto; 
                 width: 40%; height: 35vh;
@@ -89,7 +80,7 @@
                 padding: 0; justify-content: flex-start; align-items: stretch;
                 border-radius: 0;
             }
-            .type-label { font-size: 1em; padding: 6px; margin-bottom: 0; background: #111; }
+            .type-label { font-size: 1.1em; padding: 6px; margin-bottom: 0; background: #111; }
             #preview-container { 
                 flex: 1; display: flex; flex-direction: column; 
                 justify-content: center; align-items: center; padding: 5px;
@@ -107,27 +98,27 @@
 
     <div class="param-group">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
-        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30" class="safe-slider">
+        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30" class="touch-safe">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
-        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90" class="safe-slider">
+        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90" class="touch-safe">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>垂直位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
-        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0" class="safe-slider">
+        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0" class="touch-safe">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>水平位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
+        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0" class="touch-safe">
     </div>
 
     <div class="param-group">
         <div class="label-row"><label>前後位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
-        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0" class="safe-slider">
+        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0" class="touch-safe">
     </div>
 </div>
 
@@ -145,6 +136,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
+    // --- 3D 場景 ---
     const scene = new THREE.Scene();
     const isMobile = window.innerWidth <= 768;
     const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.65)) : ((window.innerWidth - 210) / window.innerHeight);
@@ -168,9 +160,9 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 相機視距校正：手機版一開始看圓錐的大小
+    // [修正] 手機版開場圓錐放大：攝影機距離調近
     if (isMobile) {
-        camera.position.set(28, 18, 28); 
+        camera.position.set(20, 15, 20); 
     } else {
         camera.position.set(25, 18, 25);
     }
@@ -179,6 +171,7 @@
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
+    // --- 核心更新邏輯 ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -227,7 +220,6 @@
         ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3.5; ctx.fillStyle = "#00ffcc";
         const mid = 110, scale = 25;
         const alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
-
         if (type === "圓") {
             ctx.beginPath(); ctx.arc(mid, mid, Math.abs(dist * Math.tan(alpha) * scale), 0, Math.PI*2); ctx.stroke();
         } else if (type === "一個點") {
@@ -269,37 +261,48 @@
         }
     }
 
-    // --- [核心：防誤觸磁吸滑動邏輯] ---
+    // --- [核心防誤觸邏輯] ---
     params.forEach(p => {
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
         
-        let startX, startY, isScrolling = false;
+        let startX, startY, initVal, lockDirection = null;
 
         s.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
-            isScrolling = false;
+            initVal = s.value;
+            lockDirection = null; // 每次觸碰重置判定
         }, { passive: true });
 
         s.addEventListener('touchmove', (e) => {
-            const deltaX = Math.abs(e.touches[0].clientX - startX);
-            const deltaY = Math.abs(e.touches[0].clientY - startY);
-            
-            // 如果垂直位移大於水平位移，判定為捲動，禁止滑桿更新
-            if (deltaY > deltaX && !isScrolling) {
-                isScrolling = true;
+            if (lockDirection === 'vertical') return; // 如果已經判定為垂直捲動，直接跳出
+
+            const curX = e.touches[0].clientX;
+            const curY = e.touches[0].clientY;
+            const dx = Math.abs(curX - startX);
+            const dy = Math.abs(curY - startY);
+
+            // 1. 判定方向
+            if (lockDirection === null) {
+                if (dx > dy && dx > 5) {
+                    lockDirection = 'horizontal'; // 判定為調整數值
+                } else if (dy > dx && dy > 5) {
+                    lockDirection = 'vertical';   // 判定為捲動頁面
+                }
             }
-            
-            if (isScrolling) {
-                // 如果是在捲動中，停止事件傳遞，滑桿就不會動
-                e.stopPropagation();
+
+            // 2. 執行鎖定
+            if (lockDirection === 'vertical') {
+                s.value = initVal; // 強制將數值拉回初始點，不准動
+            } else if (lockDirection === 'horizontal') {
+                // 如果是水平移動，禁止頁面捲動
+                if (e.cancelable) e.preventDefault();
             }
         }, { passive: false });
 
         s.addEventListener('input', (e) => {
-            if (isScrolling) {
-                e.preventDefault(); 
-                s.value = n.value; // 強制將值拉回原本的數值，防止跳動
+            if (lockDirection === 'vertical') {
+                s.value = initVal; // 二次保險：如果是垂直捲動中，不准更新
                 return;
             }
             n.value = s.value; update();
