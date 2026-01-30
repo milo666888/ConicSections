@@ -5,9 +5,10 @@
     <title>圓錐曲線 3D 精確解析教具</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
         
-        /* --- [電腦版：完全維持原始設計] --- */
+        /* --- [1. 電腦版樣式：完全維持您的原始設計] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
             background: rgba(15, 15, 15, 0.98); padding: 12px; 
@@ -37,47 +38,42 @@
         #preview-box { 
             position: absolute; bottom: 20px; right: 20px; 
             background: rgba(0,0,0,0.92); padding: 12px; 
-            border-radius: 8px; border: 1px solid #555; 
+            border-radius: 8px; border: 1px solid #555; z-index: 5;
         }
 
-        /* 預設隱藏手機專用按鈕 */
-        #mobile-settings-icon { display: none; }
-
-        /* --- [手機版：Media Query 覆蓋設計] --- */
+        /* --- [2. 📱 手機版樣式：完全重新定義] --- */
         @media (max-width: 768px) {
-            /* 1. 數據直接顯示在畫面上 (懸浮半透明) */
+            /* 圖片區在上半部 */
+            canvas { height: 50vh !important; }
+
+            /* 數據調整在左下 */
             #ui {
-                width: 145px; height: auto; bottom: auto;
-                background: rgba(15, 15, 15, 0.6); 
-                border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 0 0 12px 0; padding: 10px;
+                top: 50vh; left: 0; width: 60%; height: 50vh;
+                background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
+                padding: 10px; border-radius: 0;
             }
             .type-label { font-size: 1.1em; margin: 5px 0 10px 0; padding: 5px; }
-            .param-group { margin-bottom: 8px; padding-bottom: 4px; }
+            .param-group { margin-bottom: 8px; padding-bottom: 5px; }
             label { font-size: 10px; }
 
-            /* 2. 截面圖形移至右上角並縮小 */
+            /* 截面圖形在右下 */
             #preview-box {
-                bottom: auto; top: 15px; right: 15px;
-                padding: 6px; background: rgba(0,0,0,0.7);
+                top: 50vh; left: 60%; width: 40%; height: 50vh;
+                bottom: auto; right: auto;
+                background: #050505; border: none; border-top: 1px solid #333;
+                display: flex; flex-direction: column; justify-content: center; align-items: center;
+                padding: 5px;
             }
-            #preview-box div { font-size: 11px !important; margin-bottom: 4px !important; }
-            #pCanvas { width: 100px !important; height: 100px !important; }
-
-            /* 3. LOGO 移至右下角 */
+            #pCanvas { width: 100% !important; height: auto !important; max-width: 140px; }
+            
+            /* 公司 LOGO：改放在預覽區最下方 */
             #company-logo {
-                position: fixed; left: auto; right: 15px; bottom: 15px;
-                width: 42px; opacity: 1; z-index: 100;
+                position: absolute; bottom: 10px; right: 10px; left: auto;
+                width: 45px; opacity: 1; z-index: 100;
             }
 
-            /* 4. ⚙️ 設定 ICON 與 LOGO 並列 */
-            #mobile-settings-icon {
-                display: flex; position: fixed; right: 65px; bottom: 15px;
-                width: 42px; height: 42px; background: #00ffcc; border-radius: 50%;
-                align-items: center; justify-content: center; z-index: 100;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; 
-                font-size: 1.3rem; color: #000;
-            }
+            /* 手機版不需要設定 ICON */
+            #mobile-settings-icon { display: none !important; }
         }
     </style>
 </head>
@@ -112,12 +108,10 @@
     </div>
 </div>
 
-<div id="mobile-settings-icon">⚙️</div>
-
 <img id="company-logo" src="company-logo.png" alt="Company Logo">
 
 <div id="preview-box">
-    <div style="font-size: 13px; margin-bottom:8px; text-align:center; color:#00ffcc; font-weight:bold;">截面圖形</div>
+    <div style="font-size: 12px; margin-bottom:5px; text-align:center; color:#00ffcc; font-weight:bold;">截面圖形</div>
     <canvas id="pCanvas" width="220" height="220"></canvas>
 </div>
 
@@ -127,10 +121,12 @@
 <script>
     // --- 3D 場景建置 ---
     const scene = new THREE.Scene();
-    // 維持原始 Aspect Ratio 計算邏輯
+    
+    // 設定手機版初始視距 (讓圓錐變小)
     const isMobile = window.innerWidth <= 768;
-    const aspect = isMobile ? (window.innerWidth / window.innerHeight) : ((window.innerWidth - 210) / window.innerHeight);
+    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.5)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+    
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -150,13 +146,19 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    camera.position.set(25, 18, 25);
+    // 初始攝影機位置：手機版拉得更遠一點 (40, 25, 40)
+    if (isMobile) {
+        camera.position.set(40, 25, 40);
+    } else {
+        camera.position.set(25, 18, 25);
+    }
+    
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
-    // --- 核心邏輯 (完全保留原始運算) ---
+    // --- 核心邏輯 ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -177,7 +179,6 @@
         planeGroup.rotation.x = radB_rot;
         planeGroup.position.set(px, py, pz);
 
-        // 判定邏輯 (原始數學公式)
         const eb = b > 90 ? 180 - b : b;
         const nx = 0, ny = Math.cos(radB_rot), nz = Math.sin(radB_rot);
         const dist = Math.abs(px*0 + py*ny + pz*nz); 
@@ -233,11 +234,11 @@
             }
             ctx.stroke();
         } else if (type === "雙曲線") {
-            const e = Math.cos(beta) / Math.cos(alpha);
-            const a = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
-            const b = a * Math.sqrt(Math.abs(e*e - 1));
             const drawBranch = (s) => {
                 ctx.beginPath(); let first = true;
+                const e = Math.cos(beta) / Math.cos(alpha);
+                const a = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
+                const b = a * Math.sqrt(Math.abs(e*e - 1));
                 for(let y = -100; y <= 100; y++) {
                     const x = a * Math.sqrt(1 + Math.pow(y / (b * scale || 1), 2));
                     if(first) { ctx.moveTo(mid + s * x * scale, mid + y); first = false; }
@@ -256,9 +257,9 @@
     });
 
     window.addEventListener('resize', () => {
-        const isMobileNow = window.innerWidth <= 768;
-        const aspectNow = isMobileNow ? (window.innerWidth / window.innerHeight) : ((window.innerWidth - 210) / window.innerHeight);
-        camera.aspect = aspectNow;
+        const isMob = window.innerWidth <= 768;
+        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.5)) : ((window.innerWidth - 210) / window.innerHeight);
+        camera.aspect = newAspect;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
