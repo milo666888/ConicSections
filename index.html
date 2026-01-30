@@ -8,17 +8,23 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: sans-serif; color: #eee; }
         
-        /* --- [1. 電腦版樣式：完全維持您的原始設計] --- */
+        /* --- [1. 電腦版樣式：完全維持您的佈局結構] --- */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 12px; 
+            background: rgba(15, 15, 15, 0.98); padding: 15px; 
             width: 210px; border-right: 1px solid #444; 
             z-index: 10; overflow-y: auto; 
         }
+        /* 新數據區標題樣式 */
+        .section-title {
+            font-size: 1.1em; color: #999; margin-bottom: 15px;
+            border-left: 3px solid #00ffcc; padding-left: 8px; font-weight: bold;
+        }
+        /* 圖形名稱標籤：現在會配合預覽盒 */
         .type-label { 
-            font-size: 1.3em; color: #00ffcc; text-align: center; 
-            font-weight: bold; padding: 8px; border: 2px solid #00ffcc; 
-            border-radius: 5px; margin: 10px 0 20px 0; background: #000;
+            font-size: 1.2em; color: #00ffcc; text-align: center; 
+            font-weight: bold; padding: 6px; border-bottom: 1px solid #333; 
+            margin-bottom: 8px; background: rgba(0,0,0,0.3);
         }
         .param-group { margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -37,14 +43,15 @@
 
         #preview-box { 
             position: absolute; bottom: 20px; right: 20px; 
-            background: rgba(0,0,0,0.92); padding: 12px; 
+            background: rgba(0,0,0,0.92); padding: 10px; 
             border-radius: 8px; border: 1px solid #555; z-index: 5;
+            display: flex; flex-direction: column;
         }
 
-        /* --- [2. 📱 手機版專屬樣式：精細空間優化] --- */
+        /* --- [2. 📱 手機版樣式：75/25 佈局重構] --- */
         @media (max-width: 768px) {
-            /* 3D 圖片區：佔 68vh */
-            canvas { height: 68vh !important; }
+            /* 3D 圖片區：佔 75vh */
+            canvas { height: 75vh !important; }
 
             /* LOGO 固定右上角 */
             #company-logo {
@@ -52,38 +59,42 @@
                 width: 38px; opacity: 0.9; z-index: 100;
             }
 
-            /* 左下數據調整區：高度縮減，並解決誤觸滑桿與顯示不全問題 */
+            /* 左下數據設定區：佔 25vh */
             #ui {
-                top: 68vh; left: 0; width: 65%; height: 32vh;
+                top: 75vh; left: 0; width: 60%; height: 25vh;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 10px 10px 40px 10px; /* 增加底部 Padding 防止顯示不全 */
-                border-radius: 0; 
-                overflow-y: auto; 
-                touch-action: pan-y; /* 鎖定滑動行為，上下捲動時不誤觸滑桿 */
+                padding: 10px 10px 30px 10px;
+                border-radius: 0; overflow-y: auto; 
+                touch-action: pan-y; /* 確保上下移動時是滑動頁面而非誤觸數據 */
             }
-            .type-label { font-size: 0.95em; margin: 0 0 8px 0; padding: 3px; }
+            .section-title { font-size: 0.9em; margin-bottom: 8px; }
             .param-group { margin-bottom: 5px; padding-bottom: 4px; }
-            label { font-size: 10px; color: #888; }
-            input[type=range] { margin: 2px 0; height: 18px; }
+            label { font-size: 10px; }
 
-            /* 右下截面預覽：鎖定為正方形 */
+            /* 右下截面預覽區：結合圖形名稱 */
             #preview-box {
-                top: 68vh; right: 0; left: auto; 
-                width: 35%; height: 32vh;
-                aspect-ratio: 1 / 1; /* 強制正方形佈局 */
+                top: 75vh; right: 0; left: auto; 
+                width: 40%; height: 25vh;
                 background: #050505; border: none; border-top: 1px solid #333; border-left: 1px solid #333;
-                display: flex; flex-direction: column; justify-content: center; 
-                align-items: center; padding: 5px;
+                padding: 0; justify-content: flex-start; align-items: stretch;
+                border-radius: 0;
             }
-            #preview-box div { font-size: 10px !important; margin-bottom: 2px !important; color: #00ffcc; }
-            #pCanvas { width: 90% !important; height: auto !important; max-width: 110px; }
+            .type-label { 
+                font-size: 1em; padding: 5px; margin-bottom: 0;
+                background: #111; border-bottom: 1px solid #222;
+            }
+            #preview-container { 
+                flex: 1; display: flex; flex-direction: column; 
+                justify-content: center; align-items: center; padding: 5px;
+            }
+            #pCanvas { width: 90% !important; height: auto !important; max-width: 100px; }
         }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div class="type-label" id="curveType">圓</div>
+    <div class="section-title">數據設定</div>
 
     <div class="param-group">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
@@ -114,8 +125,11 @@
 <img id="company-logo" src="company-logo.png" alt="Company Logo">
 
 <div id="preview-box">
-    <div style="font-weight:bold;">截面圖形</div>
-    <canvas id="pCanvas" width="220" height="220"></canvas>
+    <div class="type-label" id="curveType">圓</div>
+    <div id="preview-container">
+        <div style="font-size: 10px; margin-bottom:4px; text-align:center; color:#999;">截面圖形</div>
+        <canvas id="pCanvas" width="220" height="220"></canvas>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -125,7 +139,8 @@
     // --- 3D 場景 ---
     const scene = new THREE.Scene();
     const isMobile = window.innerWidth <= 768;
-    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.68)) : ((window.innerWidth - 210) / window.innerHeight);
+    // 手機版使用 75% 高度比例計算
+    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.75)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -146,9 +161,9 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 視距調整：手機版一開始看圓錐的大小
+    // 初始視角校準
     if (isMobile) {
-        camera.position.set(45, 30, 45); // 手機版拉得更遠一點
+        camera.position.set(45, 30, 45); 
     } else {
         camera.position.set(25, 18, 25);
     }
@@ -255,7 +270,7 @@
 
     window.addEventListener('resize', () => {
         const isMob = window.innerWidth <= 768;
-        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.68)) : ((window.innerWidth - 210) / window.innerHeight);
+        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.75)) : ((window.innerWidth - 210) / window.innerHeight);
         camera.aspect = newAspect;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
