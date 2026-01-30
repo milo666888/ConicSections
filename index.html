@@ -41,39 +41,36 @@
             border-radius: 8px; border: 1px solid #555; z-index: 5;
         }
 
-        /* --- [2. 📱 手機版樣式：完全重新定義] --- */
+        /* --- [2. 📱 手機版樣式：依照新指令重構] --- */
         @media (max-width: 768px) {
-            /* 圖片區在上半部 */
-            canvas { height: 50vh !important; }
+            /* 圖片區在上半部，比例調大一點 */
+            canvas { height: 55vh !important; }
 
-            /* 數據調整在左下 */
-            #ui {
-                top: 50vh; left: 0; width: 60%; height: 50vh;
-                background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 10px; border-radius: 0;
+            /* LOGO 移至右上角 */
+            #company-logo {
+                top: 10px; right: 10px; bottom: auto; left: auto;
+                width: 40px; opacity: 0.9;
             }
-            .type-label { font-size: 1.1em; margin: 5px 0 10px 0; padding: 5px; }
-            .param-group { margin-bottom: 8px; padding-bottom: 5px; }
-            label { font-size: 10px; }
 
-            /* 截面圖形在右下 */
+            /* 左下數據區：高度縮減為 45vh，支援滾動 */
+            #ui {
+                top: 55vh; left: 0; width: 60%; height: 45vh;
+                background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
+                padding: 12px; border-radius: 0; overflow-y: auto;
+            }
+            .type-label { font-size: 1em; margin: 0 0 10px 0; padding: 4px; }
+            .param-group { margin-bottom: 6px; padding-bottom: 4px; }
+
+            /* 右下截面圖形：高度縮減，減少上下黑邊 */
             #preview-box {
-                top: 50vh; left: 60%; width: 40%; height: 50vh;
+                top: 55vh; left: 60%; width: 40%; height: 45vh;
                 bottom: auto; right: auto;
                 background: #050505; border: none; border-top: 1px solid #333;
-                display: flex; flex-direction: column; justify-content: center; align-items: center;
-                padding: 5px;
+                display: flex; flex-direction: column; justify-content: center; /* 垂直居中 */
+                align-items: center; padding: 0; 
             }
-            #pCanvas { width: 100% !important; height: auto !important; max-width: 140px; }
-            
-            /* 公司 LOGO：改放在預覽區最下方 */
-            #company-logo {
-                position: absolute; bottom: 10px; right: 10px; left: auto;
-                width: 45px; opacity: 1; z-index: 100;
-            }
-
-            /* 手機版不需要設定 ICON */
-            #mobile-settings-icon { display: none !important; }
+            #preview-box div { font-size: 11px !important; margin-bottom: 2px !important; }
+            #pCanvas { width: 100% !important; height: auto !important; max-width: 130px; }
         }
     </style>
 </head>
@@ -122,9 +119,9 @@
     // --- 3D 場景建置 ---
     const scene = new THREE.Scene();
     
-    // 設定手機版初始視距 (讓圓錐變小)
+    // 設定手機版初始視距
     const isMobile = window.innerWidth <= 768;
-    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.5)) : ((window.innerWidth - 210) / window.innerHeight);
+    const aspect = isMobile ? (window.innerWidth / (window.innerHeight * 0.55)) : ((window.innerWidth - 210) / window.innerHeight);
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -146,7 +143,7 @@
     light.position.set(10, 20, 10);
     scene.add(light);
 
-    // 初始攝影機位置：手機版拉得更遠一點 (40, 25, 40)
+    // 初始攝影機視角設定
     if (isMobile) {
         camera.position.set(40, 25, 40);
     } else {
@@ -158,7 +155,6 @@
 
     const params = ['alpha', 'beta', 'x', 'y', 'z'];
     
-    // --- 核心邏輯 ---
     function update() {
         const a = parseFloat(document.getElementById('alphaN').value);
         const b = parseFloat(document.getElementById('betaN').value);
@@ -258,7 +254,7 @@
 
     window.addEventListener('resize', () => {
         const isMob = window.innerWidth <= 768;
-        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.5)) : ((window.innerWidth - 210) / window.innerHeight);
+        const newAspect = isMob ? (window.innerWidth / (window.innerHeight * 0.55)) : ((window.innerWidth - 210) / window.innerHeight);
         camera.aspect = newAspect;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
