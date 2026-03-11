@@ -30,17 +30,29 @@
             font-weight: bold; padding: 6px; border-bottom: 1px solid #333; 
             margin-bottom: 8px; background: rgba(0,0,0,0.3);
         }
-        .param-group { 
-            margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; 
-            touch-action: none; /* 防止滑動拉桿時觸發頁面捲動 */
-        }
+        .param-group { margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         label { font-size: 11px; color: #999; }
         input[type=number] { 
             width: 55px; background: #222; border: 1px solid #555; 
             color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
         }
-        input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
+
+        /* --- 拉桿樣式：確保只能點擊「點」來滑動 --- */
+        input[type=range] { 
+            width: 100%; margin: 15px 0; cursor: pointer; 
+            background: transparent; -webkit-appearance: none;
+            touch-action: none; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px; width: 22px; border-radius: 50%;
+            background: #00ffcc; cursor: pointer; margin-top: -9px;
+            box-shadow: 0 0 8px rgba(0,255,204,0.6);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: #333; border-radius: 2px;
+        }
 
         #company-logo {
             position: absolute; bottom: 15px; left: 15px;
@@ -59,44 +71,42 @@
             .main-title { left: 15px; top: 15px; font-size: 1.2em; }
             canvas { height: 65vh !important; }
 
-            #company-logo {
-                top: 15px; right: 15px; bottom: auto; left: auto;
-                width: 35px; opacity: 0.8; z-index: 100;
-            }
+            #company-logo { top: 15px; right: 15px; bottom: auto; left: auto; width: 35px; opacity: 0.8; z-index: 100; }
 
             #ui {
                 top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0;
                 background: #000; border-right: 1px solid #333; border-top: 1px solid #333;
-                padding: 10px 8px 30px 8px; border-radius: 0; overflow-y: auto;
+                padding: 10px 8px 30px 8px; overflow-y: auto;
             }
 
             #preview-box {
                 top: 65vh; right: 0; left: auto; bottom: 0;
                 width: 40%; height: 35vh;
                 background: #050505; border: none; border-top: 1px solid #333; border-left: 1px solid #333;
-                padding: 0; justify-content: flex-start; align-items: stretch; border-radius: 0;
-                overflow: hidden;
+                padding: 0; border-radius: 0; overflow: hidden;
+                display: flex; flex-direction: column; /* 確保垂直排列 */
             }
 
-            .type-label { font-size: 1em; padding: 4px; margin-bottom: 0; background: #111; }
+            .type-label { font-size: 0.9em; padding: 4px; background: #111; margin-bottom: 0; border-bottom: 1px solid #222; }
             
             #preview-container { 
-                flex: 1; display: flex; flex-direction: column; 
-                justify-content: center; align-items: center; padding: 2px;
-                min-height: 0;
+                flex: 1; /* 佔滿剩餘空間 */
+                display: flex; flex-direction: column; 
+                justify-content: center; align-items: center; 
+                padding: 4px; min-height: 0; /* 防止溢出 */
             }
             
             #pCanvas { 
-                max-width: 100% !important; 
-                max-height: 80% !important; 
+                max-width: 90% !important; 
+                max-height: 75% !important; /* 降低高度佔比，避免被擠出螢幕 */
                 width: auto !important; 
-                height: auto !important; 
+                height: auto !important;
+                display: block;
             }
 
             .section-title { margin-bottom: 8px; font-size: 0.75em; }
             .param-group { margin-bottom: 8px; padding-bottom: 4px; }
-            /* 修正：不再禁用點擊，改用 touch-action 控制 */
-            input[type=range] { pointer-events: auto; } 
+            input[type=range] { pointer-events: auto !important; margin: 10px 0; }
         }
     </style>
 </head>
@@ -133,7 +143,7 @@
 <div id="preview-box">
     <div class="type-label" id="curveType">圓</div>
     <div id="preview-container">
-        <div style="font-size: 9px; margin-bottom:2px; text-align:center; color:#999;">截面圖形</div>
+        <div style="font-size: 9px; margin-bottom:4px; text-align:center; color:#999;">截面圖形</div>
         <canvas id="pCanvas" width="220" height="220"></canvas>
     </div>
 </div>
@@ -266,35 +276,6 @@
 
     params.forEach(p => {
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
-        const paramGroup = s.parentElement;
-        let startX, initVal, isSliding = false;
-
-        // 手機版自定義滑動邏輯優化
-        paramGroup.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            initVal = parseFloat(s.value);
-            isSliding = false;
-        }, { passive: false }); // 關鍵：改為 false 以允許 preventDefault
-
-        paramGroup.addEventListener('touchmove', (e) => {
-            const dx = e.touches[0].clientX - startX;
-            if (!isSliding && Math.abs(dx) > 5) isSliding = true;
-            
-            if (isSliding) {
-                e.preventDefault(); // 阻止頁面捲動
-                const rect = s.getBoundingClientRect();
-                const range = parseFloat(s.max) - parseFloat(s.min);
-                const deltaVal = (dx / rect.width) * range;
-                let newVal = initVal + deltaVal;
-                newVal = Math.max(parseFloat(s.min), Math.min(parseFloat(s.max), newVal));
-                
-                s.value = newVal;
-                n.value = Math.round(newVal * 10) / 10;
-                update();
-            }
-        }, { passive: false });
-
-        // 原生事件綁定
         s.addEventListener('input', () => { n.value = s.value; update(); });
         n.addEventListener('change', () => { s.value = n.value; update(); });
     });
