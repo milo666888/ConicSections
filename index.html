@@ -8,28 +8,29 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
         
+        /* 標題區域：實色背景防止捲動重疊 */
         .main-title {
-            position: absolute; top: 18px; left: 18px; z-index: 100;
+            position: absolute; 
+            top: 0; left: 0; z-index: 100;
+            width: 210px; height: 75px; 
+            padding: 18px 0 0 18px;
+            background: #0f0f0f; 
             font-size: 1.5em; font-weight: bold; color: #00ffcc;
             text-shadow: 0 0 10px rgba(0,255,204,0.5); pointer-events: none;
         }
 
-        /* --- 快速切換按鈕樣式 --- */
+        /* 快速切換按鈕樣式 */
         .preset-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
         .preset-btn { 
-            flex: 1 1 calc(50% - 6px); /* 兩兩一排，整齊對齊 */
+            flex: 1 1 calc(50% - 6px); 
             background: #222; border: 1px solid #444; color: #00ffcc; 
             font-size: 11px; padding: 8px 2px; cursor: pointer; border-radius: 4px;
             transition: all 0.2s;
         }
         .preset-btn:active { background: #00ffcc; color: #000; }
-        
-        /* RESET 按鈕特殊顏色 */
-        .reset-btn { 
-            background: #444; color: #fff; font-weight: bold; border: 1px solid #666; 
-        }
+        .reset-btn { background: #444; color: #fff; font-weight: bold; border: 1px solid #666; }
 
-        /* --- 電腦版樣式 --- */
+        /* UI 選單 */
         #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
             background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; 
@@ -54,7 +55,6 @@
         }
         input[type=range] { width: 100%; margin: 5px 0; cursor: pointer; }
 
-        /* Logo 位置：統一在右上方 */
         #company-logo {
             position: absolute; top: 15px; right: 15px;
             width: 70px; height: auto; z-index: 110; pointer-events: none;
@@ -67,10 +67,13 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- [📱 手機版佈局優化] --- */
+        /* 手機版佈局 */
         @media (max-width: 768px) {
+            .main-title { 
+                width: auto; height: auto; background: none; 
+                left: 15px; top: 15px; font-size: 1.2em; padding: 0;
+            }
             #company-logo { width: 45px; opacity: 0.9; }
-            .main-title { left: 15px; top: 15px; font-size: 1.2em; }
             canvas { height: 65vh !important; }
 
             #ui {
@@ -113,7 +116,7 @@
         <button class="preset-btn" onclick="applyPreset(30, 15, 2.0, 0, 0)">雙曲線</button>
         
         <button class="preset-btn" onclick="applyPreset(30, 30, 0.0, 0, 0)">一條直線</button>
-        <button class="preset-btn" onclick="applyPreset(45, 20, 0.0, 0, 0)">兩相交線</button>
+        <button class="preset-btn" onclick="applyPreset(30, 15, 0.0, 0, 0)">兩相交線</button>
     </div>
 
     <div class="section-title">數據設定</div>
@@ -287,20 +290,27 @@
     params.forEach(p => {
         const s = document.getElementById(p + 'S'), n = document.getElementById(p + 'N');
         const paramGroup = s.parentElement;
-        let startX, initVal, isSliding = false;
+        let startX, startY, initVal, isSliding = false;
 
         if (isMobile) {
             paramGroup.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY; // 記錄起點高度
                 initVal = parseFloat(s.value);
                 isSliding = false;
             }, { passive: true });
 
             paramGroup.addEventListener('touchmove', (e) => {
                 const dx = e.touches[0].clientX - startX;
-                if (!isSliding && Math.abs(dx) > 15) isSliding = true;
+                const dy = e.touches[0].clientY - startY;
+                
+                // [修正] 嚴格判斷滑動方向：只有當水平移動明顯大於垂直移動時，才啟動數值調整
+                if (!isSliding && Math.abs(dx) > 15 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                    isSliding = true;
+                }
+                
                 if (isSliding) {
-                    if (e.cancelable) e.preventDefault();
+                    if (e.cancelable) e.preventDefault(); // 阻止背景捲動
                     const rect = s.getBoundingClientRect();
                     const range = parseFloat(s.max) - parseFloat(s.min);
                     const newVal = Math.max(parseFloat(s.min), Math.min(parseFloat(s.max), initVal + (dx / rect.width) * range));
