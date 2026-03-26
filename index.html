@@ -101,7 +101,7 @@
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
     <div class="param-group" data-id="y" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
+        <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="yN" value="2.0"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
     <div class="param-group" data-id="x" data-min="-10" data-max="10">
@@ -109,11 +109,11 @@
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
     <div class="param-group" data-id="z" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
+        <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="zN" value="0.0"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
     <div class="param-group unimportant" data-id="coneY" data-min="-5" data-max="5">
-        <div class="label-row"><label>圓錐位置 (Y):</label><input type="number" id="coneYN" value="0"></div>
+        <div class="label-row"><label>圓錐位置 (Z):</label><input type="number" id="coneYN" value="0"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
 </div>
@@ -144,6 +144,51 @@
     const planeGroup = new THREE.Group();
     const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
     planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
+    // 座標軸：完整雙向延伸，正方向加箭頭，低調灰色半透明
+    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45, depthTest: false });
+    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45 });
+
+    function makeFullAxis(posDir, len, mat) {
+        const neg = posDir.clone().multiplyScalar(-len);
+        const pos = posDir.clone().multiplyScalar(len);
+        const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([neg, pos]), mat);
+        line.renderOrder = 1;
+        return line;
+    }
+    scene.add(makeFullAxis(new THREE.Vector3(1,0,0), 15, axisMatXY));
+    scene.add(makeFullAxis(new THREE.Vector3(0,0,1), 15, axisMatXY));
+    scene.add(makeFullAxis(new THREE.Vector3(0,1,0), 13, axisMatZ));
+
+    // 箭頭：XY軸關閉 depthTest 確保不被平面擋住
+    function makeArrow(position, direction, noDepth) {
+        const geo = new THREE.ConeGeometry(0.13, 0.55, 8);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.55, depthTest: !noDepth });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction.clone().normalize());
+        mesh.position.copy(position);
+        mesh.renderOrder = 2;
+        return mesh;
+    }
+    scene.add(makeArrow(new THREE.Vector3(15, 0, 0),  new THREE.Vector3(1,0,0), true));
+    scene.add(makeArrow(new THREE.Vector3(0, 0, 15),  new THREE.Vector3(0,0,1), true));
+    scene.add(makeArrow(new THREE.Vector3(0, 13, 0),  new THREE.Vector3(0,1,0), false));
+
+    function makeAxisLabel(text, noDepth) {
+        const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = 'rgba(200,200,200,0.8)'; ctx.font = 'bold 40px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, 32, 32);
+        const tex = new THREE.CanvasTexture(c);
+        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: !noDepth, transparent: true, opacity: 0.75 });
+        const sprite = new THREE.Sprite(mat); sprite.scale.set(1, 1, 1);
+        sprite.renderOrder = 3;
+        return sprite;
+    }
+    const lx = makeAxisLabel('X', true);  lx.position.set(16, 0, 0);  scene.add(lx);
+    const ly = makeAxisLabel('Y', true);  ly.position.set(0, 0, 16);  scene.add(ly);
+    const lz = makeAxisLabel('Z', false); lz.position.set(0, 14, 0);  scene.add(lz);
+
     scene.add(new THREE.AmbientLight(0xffffff, 0.7));
     const light = new THREE.PointLight(0xffffff, 1); light.position.set(10, 20, 10); scene.add(light);
     const paramData = { coneY: 0 }; 
