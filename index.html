@@ -7,7 +7,7 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
-
+        
         .main-title {
             position: absolute; top: 0; left: 0; z-index: 100;
             width: 210px; height: 75px; padding: 18px 0 0 18px;
@@ -16,84 +16,61 @@
         }
 
         .preset-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-        .preset-btn {
-            flex: 1 1 calc(50% - 6px);
-            background: #222; border: 1px solid #444; color: #00ffcc;
-            font-size: 11px; padding: 8px 2px; cursor: pointer; border-radius: 4px; transition: all 0.2s;
+        .preset-btn { 
+            flex: 1 1 calc(50% - 6px); background: #222; border: 1px solid #444; color: #00ffcc; 
+            font-size: 11px; padding: 8px 2px; cursor: pointer; border-radius: 4px;
         }
         .preset-btn:active { background: #00ffcc; color: #000; }
         .reset-btn { background: #444; color: #fff; font-weight: bold; border: 1px solid #666; }
 
-        #ui {
+        #ui { 
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15,15,15,0.98); padding: 75px 12px 12px 12px;
-            width: 210px; border-right: 1px solid #444; z-index: 10; overflow-y: auto;
+            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; 
+            width: 210px; border-right: 1px solid #444; z-index: 10; overflow-y: auto; 
         }
         .section-title {
             font-size: 0.85em; color: #888; margin-bottom: 12px;
             border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
         }
-        .type-label {
-            font-size: 1.2em; color: #00ffcc; text-align: center;
-            font-weight: bold; padding: 6px; border-bottom: 1px solid #333;
-            margin-bottom: 8px; background: rgba(0,0,0,0.3);
-        }
-        .param-group { margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .type-label { font-size: 1.2em; color: #00ffcc; text-align: center; font-weight: bold; padding: 10px; border-bottom: 1px solid #333; }
+        .param-group { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 12px; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         label { font-size: 11px; color: #999; }
-        input[type=number] {
-            width: 55px; background: #222; border: 1px solid #555;
-            color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px;
-        }
-        /* 隱藏原生 range */
-        input[type=range] { display: none; }
+        input[type=number] { width: 55px; background: #222; border: 1px solid #555; color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px; }
 
-        /* 自製滑桿 */
-        .slider-wrap {
-            position: relative; width: 100%; height: 30px;
-            margin: 6px 0; touch-action: pan-y;
-        }
-        .slider-track {
-            position: absolute; top: 50%; left: 0; right: 0;
-            height: 4px; margin-top: -2px;
-            background: #444; border-radius: 2px; pointer-events: none;
-        }
-        .slider-fill {
-            position: absolute; top: 0; left: 0; height: 100%;
-            background: #00ffcc; border-radius: 2px;
-        }
-        .slider-thumb {
-            position: absolute; top: 50%;
-            width: 22px; height: 22px; margin-top: -11px; margin-left: -11px;
-            background: #00ffcc; border-radius: 50%;
-            box-shadow: 0 0 8px rgba(0,255,204,0.8); pointer-events: none;
-            transition: transform 0.08s;
-        }
-        .slider-thumb.active { transform: scale(1.35); }
+        .custom-slider { position: relative; width: 100%; height: 24px; display: flex; align-items: center; touch-action: pan-y; }
+        .slider-track { position: absolute; width: 100%; height: 2px; background: #444; border-radius: 1px; pointer-events: none; }
+        .slider-thumb { position: absolute; width: 14px; height: 14px; background: #00ffcc; border-radius: 50%; cursor: grab; left: 0; transform: translateX(-50%); z-index: 5; touch-action: none; }
 
-        #company-logo {
-            position: absolute; top: 15px; right: 15px;
-            width: 70px; height: auto; z-index: 110; pointer-events: none;
+        .param-group.unimportant label { color: #555 !important; }
+        .param-group.unimportant .slider-thumb { background: #555 !important; }
+        .param-group.unimportant input[type=number] { color: #555 !important; border-color: #333 !important; }
+
+        #company-logo { position: absolute; top: 15px; right: 15px; width: 70px; z-index: 110; pointer-events: none; }
+
+        #preview-box { 
+            position: absolute; bottom: 20px; right: 20px; 
+            background: rgba(0,0,0,0.92); 
+            border-radius: 8px; border: 1px solid #555; z-index: 5; 
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* preview-box: 固定右下，canvas 動態填滿 */
-        #preview-box {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.92); padding: 10px;
-            border-radius: 8px; border: 1px solid #555; z-index: 5;
-            display: flex; flex-direction: column; align-items: center;
+        #preview-container { 
+            flex: 1; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; 
+            padding: 10px;
         }
-        #pCanvas { display: block; }
 
         @media (max-width: 768px) {
             .main-title { width: auto; height: auto; background: none; left: 15px; top: 15px; font-size: 1.2em; padding: 0; }
-            #company-logo { width: 45px; opacity: 0.9; }
-            canvas#three { height: 65vh !important; }
-            #ui { top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0; background: #000; padding: 10px 8px 30px 8px; overflow-y: auto; }
-            #preview-box { top: 65vh; right: 0; left: auto; bottom: 0; width: 40%; height: 35vh; background: #050505; border-radius: 0; padding: 6px; }
-            .type-label { font-size: 0.9em; padding: 3px; margin-bottom: 4px; }
-            .section-title { margin-bottom: 8px; font-size: 0.75em; }
-            .param-group { margin-bottom: 8px; padding-bottom: 4px; }
+            #company-logo { width: 45px; }
+            #ui { top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0; background: #000; padding: 10px 8px 30px 8px; }
+            #preview-box { top: 65vh; right: 0; left: auto; bottom: 0; width: 40%; height: 35vh; background: #050505; border-radius: 0; border: none; border-top: 1px solid #333; border-left: 1px solid #333; display: flex; flex-direction: column; }
+            #preview-container { flex: 1; padding: 2px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
+            #preview-container > div:first-child { display: none; }
+            .type-label { font-size: 0.85em; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .slider-thumb { width: 20px; height: 20px; }
+            #pCanvas { display: block; width: 90% !important; height: auto !important; aspect-ratio: 1 / 1; max-width: none !important; max-height: none !important; }
         }
     </style>
 </head>
@@ -104,41 +81,40 @@
 <div id="ui">
     <div class="section-title">快速切換</div>
     <div class="preset-group">
-        <button class="preset-btn reset-btn" onclick="applyPreset(30,90,2.0,0,0)">RESET</button>
-        <button class="preset-btn" onclick="applyPreset(30,60,0.0,0,0)">一個點</button>
-        <button class="preset-btn" onclick="applyPreset(30,90,4.0,0,0)">圓形</button>
-        <button class="preset-btn" onclick="applyPreset(30,60,4.0,0,0)">橢圓形</button>
-        <button class="preset-btn" onclick="applyPreset(30,30,4.0,0,0)">拋物線</button>
-        <button class="preset-btn" onclick="applyPreset(30,15,2.0,0,0)">雙曲線</button>
-        <button class="preset-btn" onclick="applyPreset(30,30,0.0,0,0)">一條直線</button>
-        <button class="preset-btn" onclick="applyPreset(30,15,0.0,0,0)">兩相交線</button>
+        <button class="preset-btn reset-btn" onclick="applyPreset(30, 90, 2.0, 0, 0, 0)">RESET</button>
+        <button class="preset-btn" onclick="applyPreset(30, 60, 0.0, 0, 0, 0)">一個點</button>
+        <button class="preset-btn" onclick="applyPreset(30, 90, 4.0, 0, 0, 0)">圓形</button>
+        <button class="preset-btn" onclick="applyPreset(30, 60, 4.0, 0, 0, 0)">橢圓形</button>
+        <button class="preset-btn" onclick="applyPreset(30, 30, 4.0, 0, 0, 0)">拋物線</button>
+        <button class="preset-btn" onclick="applyPreset(30, 15, 2.0, 0, 0, 0)">雙曲線</button>
+        <button class="preset-btn" onclick="applyPreset(30, 30, 0.0, 0, 0, 0)">一條直線</button>
+        <button class="preset-btn" onclick="applyPreset(30, 15, 0.0, 0, 0, 0)">兩相交線</button>
     </div>
 
-    <div class="section-title">數據設定</div>
-    <div class="param-group">
+    <div class="section-title">數據設定<br><span style="font-size:0.85em; font-weight:normal; color:#666;">（最多至小數點後兩位）</span></div>
+    <div class="param-group" data-id="alpha" data-min="5" data-max="85">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
-        <input type="range" id="alphaS" min="5" max="85" step="0.1" value="30">
-        <div class="slider-wrap" data-param="alphaS"><div class="slider-track"><div class="slider-fill"></div></div><div class="slider-thumb"></div></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
-    <div class="param-group">
+    <div class="param-group" data-id="beta" data-min="0" data-max="180">
         <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
-        <input type="range" id="betaS" min="0" max="180" step="0.1" value="90">
-        <div class="slider-wrap" data-param="betaS"><div class="slider-track"><div class="slider-fill"></div></div><div class="slider-thumb"></div></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
-    <div class="param-group">
-        <div class="label-row"><label>垂直位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
-        <input type="range" id="yS" min="-10" max="10" step="0.1" value="2.0">
-        <div class="slider-wrap" data-param="yS"><div class="slider-track"><div class="slider-fill"></div></div><div class="slider-thumb"></div></div>
+    <div class="param-group" data-id="y" data-min="-10" data-max="10">
+        <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="yN" value="2.0"></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
-    <div class="param-group">
-        <div class="label-row"><label>水平位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <input type="range" id="xS" min="-10" max="10" step="0.1" value="0.0">
-        <div class="slider-wrap" data-param="xS"><div class="slider-track"><div class="slider-fill"></div></div><div class="slider-thumb"></div></div>
+    <div class="param-group" data-id="x" data-min="-10" data-max="10">
+        <div class="label-row"><label>平面位移 (X):</label><input type="number" id="xN" value="0.0"></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
-    <div class="param-group">
-        <div class="label-row"><label>前後位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
-        <input type="range" id="zS" min="-10" max="10" step="0.1" value="0.0">
-        <div class="slider-wrap" data-param="zS"><div class="slider-track"><div class="slider-fill"></div></div><div class="slider-thumb"></div></div>
+    <div class="param-group" data-id="z" data-min="-10" data-max="10">
+        <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="zN" value="0.0"></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+    </div>
+    <div class="param-group unimportant" data-id="coneY" data-min="-5" data-max="5">
+        <div class="label-row"><label>圓錐位置 (Y):</label><input type="number" id="coneYN" value="0"></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
 </div>
 
@@ -146,359 +122,181 @@
 
 <div id="preview-box">
     <div class="type-label" id="curveType">圓</div>
-    <div style="font-size:9px;margin-bottom:2px;text-align:center;color:#999;">截面圖形</div>
-    <canvas id="pCanvas"></canvas>
+    <div id="preview-container">
+        <div style="font-size: 10px; margin-bottom:8px; text-align:center; color:#999; letter-spacing: 1px;">截面圖形</div>
+        <canvas id="pCanvas" width="220" height="220"></canvas>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    // ── Three.js 場景 ──────────────────────────────────────────
     const scene = new THREE.Scene();
-    const getIsMobile = () => window.innerWidth <= 768;
-    let isMobile = getIsMobile();
-    const aspect = isMobile
-        ? (window.innerWidth / (window.innerHeight * 0.65))
-        : ((window.innerWidth - 210) / window.innerHeight);
-    const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.domElement.id = 'three';
-    renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     scene.add(new THREE.GridHelper(30, 60, 0x222222, 0x222222));
     let topCone, bottomCone;
-    const coneMat = new THREE.MeshPhongMaterial({ color:0x3498db, transparent:true, opacity:0.35, side:THREE.DoubleSide });
+    const coneGroup = new THREE.Group(); scene.add(coneGroup);
+    const coneMat = new THREE.MeshPhongMaterial({ color: 0x3498db, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const planeGroup = new THREE.Group();
-    const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(35,35),
-        new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6})
-    );
-    plane.rotation.x = Math.PI/2;
-    planeGroup.add(plane);
-    scene.add(planeGroup);
+    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
+    planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
     scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const light = new THREE.PointLight(0xffffff, 1);
-    light.position.set(10,20,10);
-    scene.add(light);
+    const light = new THREE.PointLight(0xffffff, 1); light.position.set(10, 20, 10); scene.add(light);
+    const paramData = { coneY: 0 }; 
 
-    camera.position.set(isMobile ? 32 : 25, isMobile ? 22 : 18, isMobile ? 32 : 25);
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    // ── 自製滑桿：完全由 JS 控制，與 input[type=range] 同步 ────
-    // 只有手指「按下 thumb 圓點 ±THUMB_HIT px」才啟動拖曳
-    // 其餘位置的觸控全部放行給父層捲動
-    const THUMB_HIT  = 26; // px，命中半徑
-    const DIR_THRESH = 6;  // px，方向確認門檻
-
-    function initSlider(wrapEl) {
-        const paramId = wrapEl.dataset.param;               // e.g. "alphaS"
-        const hidden  = document.getElementById(paramId);   // hidden input[type=range]
-        const numId   = paramId.replace('S','N');
-        const numEl   = document.getElementById(numId);
-        const fill    = wrapEl.querySelector('.slider-fill');
-        const thumb   = wrapEl.querySelector('.slider-thumb');
-
-        const getMin  = () => parseFloat(hidden.min);
-        const getMax  = () => parseFloat(hidden.max);
-        const getVal  = () => parseFloat(hidden.value);
-
-        function pct() { return (getVal() - getMin()) / (getMax() - getMin()); }
-
-        function refreshUI() {
-            const p = pct() * 100;
-            fill.style.width  = p + '%';
-            thumb.style.left  = p + '%';
-        }
-
-        function setVal(v) {
-            const clamped = Math.max(getMin(), Math.min(getMax(), v));
-            hidden.value = clamped;
-            numEl.value  = Math.round(clamped * 10) / 10;
-            refreshUI();
-            update();
-        }
-
-        // 初始化外觀
-        refreshUI();
-
-        // ── 觸控邏輯 ────────────────────────────────────────────
-        let state = 'idle'; // idle | pending | dragging | out
-        let startX, startY, initVal, wrapLeft, wrapWidth;
-
-        wrapEl.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            const rect  = wrapEl.getBoundingClientRect();
-            const thumbScreenX = rect.left + pct() * rect.width;
-
-            if (Math.abs(touch.clientX - thumbScreenX) <= THUMB_HIT) {
-                state     = 'pending';
-                startX    = touch.clientX;
-                startY    = touch.clientY;
-                initVal   = getVal();
-                wrapLeft  = rect.left;
-                wrapWidth = rect.width;
-                thumb.classList.add('active');
-            } else {
-                state = 'out'; // 沒打中 thumb → 完全放行
-            }
-        }, { passive: true }); // passive:true → 不阻止 touchstart，允許頁面捲動
-
-        wrapEl.addEventListener('touchmove', (e) => {
-            if (state === 'idle' || state === 'out') return;
-
-            const tx = e.touches[0].clientX;
-            const ty = e.touches[0].clientY;
-            const dx = Math.abs(tx - startX);
-            const dy = Math.abs(ty - startY);
-
-            if (state === 'pending') {
-                if (dx < DIR_THRESH && dy < DIR_THRESH) return; // 還沒移夠
-                state = (dx >= dy) ? 'dragging' : 'out';
-                if (state === 'out') { thumb.classList.remove('active'); return; }
-            }
-
-            // state === 'dragging'：確定水平，才阻止捲動
-            if (e.cancelable) e.preventDefault();
-
-            const range  = getMax() - getMin();
-            const newVal = initVal + ((tx - startX) / wrapWidth) * range;
-            setVal(newVal);
-        }, { passive: false });
-
-        wrapEl.addEventListener('touchend', () => {
-            state = 'idle';
-            thumb.classList.remove('active');
-        });
-        wrapEl.addEventListener('touchcancel', () => {
-            state = 'idle';
-            thumb.classList.remove('active');
-        });
-
-        // ── 桌面：整條 wrap 可點擊拖曳 ─────────────────────────
-        let mouseDown = false;
-
-        wrapEl.addEventListener('mousedown', (e) => {
-            mouseDown = true;
-            wrapLeft  = wrapEl.getBoundingClientRect().left;
-            wrapWidth = wrapEl.getBoundingClientRect().width;
-            initVal   = getVal();
-            startX    = e.clientX;
-            thumb.classList.add('active');
-            // 桌面版點軌道任意位置直接跳值
-            const newVal = getMin() + ((e.clientX - wrapLeft) / wrapWidth) * (getMax() - getMin());
-            setVal(newVal);
-            startX = e.clientX; // reset startX after jump
-            initVal = getVal();
-            e.preventDefault();
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!mouseDown) return;
-            const range  = getMax() - getMin();
-            const newVal = initVal + ((e.clientX - startX) / wrapWidth) * range;
-            setVal(newVal);
-        });
-        document.addEventListener('mouseup', () => {
-            if (mouseDown) { mouseDown = false; thumb.classList.remove('active'); }
-        });
-
-        // number input 同步
-        numEl.addEventListener('change', () => { setVal(parseFloat(numEl.value)); });
+    function handleResize() {
+        const width = window.innerWidth, height = window.innerHeight, isMob = width <= 768;
+        const uiWidth = isMob ? 0 : 210, uiHeight = isMob ? (height * 0.35) : 0;
+        const visibleWidth = width - uiWidth, visibleHeight = height - uiHeight;
+        renderer.setSize(width, height);
+        renderer.setViewport(uiWidth, uiHeight, visibleWidth, visibleHeight);
+        renderer.setScissor(uiWidth, uiHeight, visibleWidth, visibleHeight);
+        renderer.setScissorTest(true);
+        camera.aspect = visibleWidth / visibleHeight; camera.updateProjectionMatrix();
+        if (isMob) camera.position.set(32, 22, 32); else camera.position.set(25, 18, 25);
     }
 
-    document.querySelectorAll('.slider-wrap').forEach(initSlider);
-
-    // ── applyPreset ────────────────────────────────────────────
-    window.applyPreset = function(a, b, y, x, z) {
-        const map = { alphaS:a, betaS:b, yS:y, xS:x, zS:z };
-        Object.entries(map).forEach(([id, val]) => {
-            const hidden = document.getElementById(id);
-            hidden.value = val;
-            document.getElementById(id.replace('S','N')).value = val;
-            const wrap = document.querySelector(`[data-param="${id}"]`);
-            if (wrap) {
-                const fill  = wrap.querySelector('.slider-fill');
-                const thumb = wrap.querySelector('.slider-thumb');
-                const pct   = (val - parseFloat(hidden.min)) / (parseFloat(hidden.max) - parseFloat(hidden.min));
-                fill.style.width = (pct*100) + '%';
-                thumb.style.left = (pct*100) + '%';
+    document.querySelectorAll('.param-group').forEach(group => {
+        const id = group.dataset.id, min = parseFloat(group.dataset.min), max = parseFloat(group.dataset.max);
+        const thumb = group.querySelector('.slider-thumb'), numInput = group.querySelector('input[type=number]');
+        paramData[id] = parseFloat(numInput.value);
+        const updateUI = (val) => { thumb.style.left = ((val - min) / (max - min) * 100) + '%'; };
+        const move = (clientX) => {
+            const rect = thumb.parentElement.getBoundingClientRect();
+            let off = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            paramData[id] = Math.round((min + off * (max - min)) * 100) / 100;
+            numInput.value = paramData[id]; updateUI(paramData[id]); update();
+        };
+        thumb.addEventListener('touchstart', (e) => e.stopPropagation());
+        thumb.addEventListener('touchmove', (e) => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientX); }, {passive:false});
+        let drag = false;
+        thumb.addEventListener('mousedown', () => drag = true);
+        window.addEventListener('mousemove', (e) => { if(drag) move(e.clientX); });
+        window.addEventListener('mouseup', () => drag = false);
+        numInput.addEventListener('input', () => {
+            // 限制小數點後最多兩位，超過直接截斷
+            const raw = numInput.value;
+            const dot = raw.indexOf('.');
+            if (dot !== -1 && raw.length - dot > 3) {
+                numInput.value = parseFloat(raw).toFixed(2);
             }
         });
+        numInput.addEventListener('change', () => {
+            let val = Math.round(parseFloat(numInput.value) * 100) / 100;
+            val = Math.max(min, Math.min(max, val));
+            numInput.value = val;
+            paramData[id] = val; updateUI(val); update();
+        });
+        updateUI(paramData[id]);
+    });
+
+    window.applyPreset = function(a, b, y, x, z, cy) {
+        const vals = {alpha:a, beta:b, y:y, x:x, z:z, coneY:cy};
+        for(let id in vals) {
+            paramData[id] = vals[id];
+            const n = document.getElementById(id + 'N'); if(n) n.value = vals[id];
+            const g = document.querySelector(`.param-group[data-id="${id}"]`);
+            if(g) { const min=parseFloat(g.dataset.min), max=parseFloat(g.dataset.max); g.querySelector('.slider-thumb').style.left = ((vals[id]-min)/(max-min)*100)+'%'; }
+        }
         update();
     };
 
-    // ── 3D 更新 ────────────────────────────────────────────────
     function update() {
-        const a  = parseFloat(document.getElementById('alphaN').value);
-        const b  = parseFloat(document.getElementById('betaN').value);
-        const px = parseFloat(document.getElementById('xN').value);
-        const py = parseFloat(document.getElementById('yN').value);
-        const pz = parseFloat(document.getElementById('zN').value);
-
-        if (topCone) { scene.remove(topCone); scene.remove(bottomCone); }
-        const radA = a * Math.PI/180;
-        const h = 12;
-        const geom = new THREE.ConeGeometry(h*Math.tan(radA), h, 128, 1, true);
-        geom.translate(0, -h/2, 0);
-        topCone    = new THREE.Mesh(geom, coneMat);
-        bottomCone = new THREE.Mesh(geom, coneMat);
-        bottomCone.rotation.x = Math.PI;
-        scene.add(topCone, bottomCone);
-
+        const a = paramData.alpha, b = paramData.beta, px = paramData.x, py = paramData.y, pz = paramData.z, cy = paramData.coneY;
+        coneGroup.position.y = cy;
+        if (topCone) { coneGroup.remove(topCone); coneGroup.remove(bottomCone); }
+        const radA = a * Math.PI/180, h = 12, geom = new THREE.ConeGeometry(h*Math.tan(radA), h, 128, 1, true);
+        geom.translate(0, -h/2, 0); topCone = new THREE.Mesh(geom, coneMat); bottomCone = new THREE.Mesh(geom, coneMat); bottomCone.rotation.x = Math.PI;
+        coneGroup.add(topCone, bottomCone);
         const radB_rot = (90 - b) * (Math.PI/180);
-        planeGroup.rotation.x = radB_rot;
-        planeGroup.position.set(px, py, pz);
-
-        const eb   = b > 90 ? 180 - b : b;
-        const ny   = Math.cos(radB_rot), nz = Math.sin(radB_rot);
-        const dist = Math.abs(py*ny + pz*nz);
-        const passV = dist < 0.05;
-        const tol   = 0.5;
-
-        let type = '';
+        planeGroup.rotation.x = radB_rot; planeGroup.position.set(px, py, pz);
+        const eb = b > 90 ? 180 - b : b, ny = Math.cos(radB_rot), nz = Math.sin(radB_rot), dist = Math.abs((py - cy)*ny + pz*nz);
+        // passV：三個位移全為0才算過頂點
+        const passV = (Math.abs(px) < 0.001 && Math.abs(py - cy) < 0.001 && Math.abs(pz) < 0.001);
+        // 角度比較：精確到小數點後兩位（對應滑桿步進0.01）
+        const ebR = Math.round(eb * 100), aR = Math.round(a * 100);
+        let type;
         if (passV) {
-            if (Math.abs(eb-a) < tol)  type = '一條直線';
-            else if (eb > a)           type = '一個點';
-            else                       type = '兩相交直線';
+            if (ebR === aR)   type = "一條直線";   // eb = α → 一條直線（恰好平行母線）
+            else if (eb > a)  type = "一個點";      // eb > α → 只切頂點
+            else              type = "兩相交直線";  // eb < α → 兩條相交線
         } else {
-            if (Math.abs(eb-90) < tol) type = '圓';
-            else if (eb > a)           type = '橢圓形';
-            else if (Math.abs(eb-a) < tol) type = '拋物線';
-            else                       type = '雙曲線';
+            if (ebR === 9000) type = "圓";          // eb = 90.00° → 圓（水平切面）
+            else if (eb > a)  type = "橢圓形";      // α < eb < 90° → 橢圓
+            else if (ebR === aR) type = "拋物線";   // eb = α → 拋物線（恰好平行母線）
+            else              type = "雙曲線";       // eb < α → 雙曲線
         }
-
-        document.getElementById('curveType').innerText = type;
-        resizePreviewCanvas();
-        draw2D(type, a, eb, dist);
+        document.getElementById('curveType').innerText = type; draw2D(type, a, eb, dist);
     }
 
-    // ── Preview canvas：動態調整大小填滿容器 ──────────────────
-    function resizePreviewCanvas() {
-        const box    = document.getElementById('preview-box');
-        const canvas = document.getElementById('pCanvas');
-        const label  = document.getElementById('curveType');
-        const hint   = canvas.previousElementSibling; // "截面圖形" 文字
-
-        // 可用高度 = box 高度 - padding(12) - label 高度 - hint 高度
-        const boxW   = box.clientWidth  - 20; // 減 padding 10*2
-        const boxH   = box.clientHeight - 20
-                       - (label ? label.offsetHeight : 0)
-                       - (hint  ? hint.offsetHeight  : 0) - 4;
-        const size   = Math.max(40, Math.min(boxW, boxH));
-
-        canvas.width  = size;
-        canvas.height = size;
-    }
-
-    // ── draw2D：計算邊界後自動置中縮放 ────────────────────────
     function draw2D(type, aDeg, bDeg, dist) {
-        const canvas = document.getElementById('pCanvas');
-        const W = canvas.width, H = canvas.height;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, W, H);
-        ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = Math.max(1.5, W * 0.015);
-        ctx.fillStyle   = '#00ffcc';
+        const canvas = document.getElementById('pCanvas'), ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,220,220); ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3.5; ctx.fillStyle = "#00ffcc";
+        const mid = 110, scale = 25, alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
 
-        const alpha = aDeg * Math.PI/180;
-        const beta  = bDeg * Math.PI/180;
-        const PAD   = Math.max(8, W * 0.07);
-
-        function autoCenter(buildPoints) {
-            const segs = buildPoints(0, 0, 1);
-            if (!segs || !segs.length) return;
-            let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
-            segs.forEach(seg => {
-                [seg.move, ...seg.lines].forEach(pt => {
-                    if (!pt) return;
-                    minX=Math.min(minX,pt.x); maxX=Math.max(maxX,pt.x);
-                    minY=Math.min(minY,pt.y); maxY=Math.max(maxY,pt.y);
-                });
-            });
-            if (!isFinite(minX)) return;
-            const rangeX = maxX-minX || 1, rangeY = maxY-minY || 1;
-            const sc = Math.min((W-PAD*2)/rangeX, (H-PAD*2)/rangeY);
-            const cx = W/2 - (minX+rangeX/2)*sc;
-            const cy = H/2 - (minY+rangeY/2)*sc;
-            buildPoints(cx, cy, sc).forEach(seg => {
-                ctx.beginPath();
-                if (seg.move) ctx.moveTo(seg.move.x, seg.move.y);
-                seg.lines.forEach(pt => ctx.lineTo(pt.x, pt.y));
-                ctx.stroke();
-            });
+        if (type === "圓") {
+            ctx.beginPath(); ctx.arc(mid, mid, Math.max(0.5, Math.abs(dist * Math.tan(alpha) * scale)), 0, Math.PI*2); ctx.stroke();
         }
-
-        if (type === '一個點') {
-            ctx.beginPath(); ctx.arc(W/2, H/2, Math.max(5, W*0.04), 0, Math.PI*2); ctx.fill();
-        } else if (type === '一條直線') {
-            ctx.beginPath(); ctx.moveTo(W/2, PAD); ctx.lineTo(W/2, H-PAD); ctx.stroke();
-        } else if (type === '兩相交直線') {
-            const sl = Math.tan(alpha);
+        else if (type === "一個點") {
+            ctx.beginPath(); ctx.arc(mid, mid, 6, 0, Math.PI*2); ctx.fill();
+        }
+        else if (type === "一條直線") {
+            ctx.beginPath(); ctx.moveTo(mid, 20); ctx.lineTo(mid, 200); ctx.stroke();
+        }
+        else if (type === "兩相交直線") {
             ctx.beginPath();
-            ctx.moveTo(PAD, H/2-(W/2-PAD)*sl); ctx.lineTo(W-PAD, H/2+(W/2-PAD)*sl);
-            ctx.moveTo(W-PAD, H/2-(W/2-PAD)*sl); ctx.lineTo(PAD, H/2+(W/2-PAD)*sl);
+            const s = Math.tan(alpha);
+            ctx.moveTo(mid-100, mid-100*s); ctx.lineTo(mid+100, mid+100*s);
+            ctx.moveTo(mid+100, mid-100*s); ctx.lineTo(mid-100, mid+100*s);
             ctx.stroke();
-        } else if (type === '圓') {
-            const r = Math.abs(dist * Math.tan(alpha));
-            if (r < 0.001) { ctx.beginPath(); ctx.arc(W/2,H/2,Math.max(5,W*0.04),0,Math.PI*2); ctx.fill(); return; }
-            autoCenter((cx,cy,sc) => {
-                const pts = [];
-                for (let i=0; i<=360; i++) { const rad=i*Math.PI/180; pts.push({x:cx+Math.cos(rad)*r*sc, y:cy+Math.sin(rad)*r*sc}); }
-                return [{move:pts[0], lines:pts.slice(1)}];
-            });
-        } else if (type === '橢圓形') {
-            const cosB=Math.cos(beta), cosA=Math.cos(alpha), sinB=Math.sin(beta), sinA=Math.sin(alpha);
-            const denom = sinB*sinB - sinA*sinA;
-            if (Math.abs(denom) < 1e-6) return;
-            const a   = Math.abs(dist*sinA*cosA/denom);
-            const ecc = cosB/cosA;
-            const bv  = a * Math.sqrt(Math.max(0, 1-ecc*ecc));
-            if (a<0.001 || bv<0.001) return;
-            autoCenter((cx,cy,sc) => {
-                const pts = [];
-                for (let i=0; i<=360; i++) { const rad=i*Math.PI/180; pts.push({x:cx+Math.cos(rad)*a*sc, y:cy+Math.sin(rad)*bv*sc}); }
-                return [{move:pts[0], lines:pts.slice(1)}];
-            });
-        } else if (type === '拋物線') {
-            const p  = Math.abs(dist*Math.sin(alpha));
-            const fp = p<0.01 ? 0.01 : p;
-            autoCenter((cx,cy,sc) => {
-                const pts = [];
-                for (let t=-6; t<=6; t+=0.05) pts.push({x:cx+(t*t/(4*fp))*sc, y:cy+t*sc});
-                return [{move:pts[0], lines:pts.slice(1)}];
-            });
-        } else if (type === '雙曲線') {
-            const cosB=Math.cos(beta), cosA=Math.cos(alpha), sinA=Math.sin(alpha), sinB=Math.sin(beta);
-            const denom = sinA*sinA - sinB*sinB;
-            if (Math.abs(denom)<1e-6) return;
-            const a   = Math.abs(dist*cosA*sinA/denom);
-            const ecc = cosB/cosA;
-            const bv  = a * Math.sqrt(Math.max(0, ecc*ecc-1));
-            if (a<0.001) return;
-            autoCenter((cx,cy,sc) => {
-                const branch = (sign) => {
-                    const pts = [];
-                    for (let t=-5; t<=5; t+=0.04) pts.push({x:cx+sign*a*Math.cosh(t)*sc, y:cy+bv*Math.sinh(t)*sc});
-                    return {move:pts[0], lines:pts.slice(1)};
-                };
-                return [branch(1), branch(-1)];
-            });
+        }
+        else if (type === "橢圓形") {
+            ctx.beginPath();
+            const e = Math.cos(beta) / Math.cos(alpha);
+            const a = Math.abs(dist * Math.sin(alpha)*Math.cos(alpha) / (Math.pow(Math.sin(beta),2) - Math.pow(Math.sin(alpha),2)));
+            const b = a * Math.sqrt(Math.max(0, Math.abs(1 - e*e)));
+            ctx.ellipse(mid, mid, Math.min(90, a*scale), Math.min(90, b*scale), 0, 0, Math.PI*2);
+            ctx.stroke();
+        }
+        else if (type === "拋物線") {
+            ctx.beginPath();
+            const p = Math.abs(dist * Math.sin(alpha));
+            let f = true;
+            for(let y = -95; y <= 95; y++) {
+                const x = (y*y) / (4 * (p < 0.1 ? 0.1 : p) * scale);
+                if(f) { ctx.moveTo(mid + x, mid + y); f = false; } else ctx.lineTo(mid + x, mid + y);
+            }
+            ctx.stroke();
+        }
+        else if (type === "雙曲線") {
+            const drawBranch = (s) => {
+                ctx.beginPath();
+                let f = true;
+                const e = Math.cos(beta) / Math.cos(alpha);
+                const aMath = Math.abs(dist * Math.cos(alpha)*Math.sin(alpha) / (Math.pow(Math.sin(alpha),2) - Math.pow(Math.sin(beta),2)));
+                const bMath = aMath * Math.sqrt(Math.max(0, Math.abs(e*e - 1)));
+                // 轉換為像素單位，確保不混用數學單位與像素
+                const aP = Math.max(8, aMath * scale);
+                const bP = Math.max(8, bMath * scale);
+                for(let yPx = -95; yPx <= 95; yPx++) {
+                    const xPx = aP * Math.sqrt(1 + Math.pow(yPx / bP, 2));
+                    if(f) { ctx.moveTo(mid + s * xPx, mid + yPx); f = false; }
+                    else ctx.lineTo(mid + s * xPx, mid + yPx);
+                }
+                ctx.stroke();
+            };
+            drawBranch(1);
+            drawBranch(-1);
         }
     }
 
-    // ── Resize ─────────────────────────────────────────────────
-    window.addEventListener('resize', () => {
-        isMobile = getIsMobile();
-        const newAspect = isMobile
-            ? (window.innerWidth / (window.innerHeight * 0.65))
-            : ((window.innerWidth - 210) / window.innerHeight);
-        camera.aspect = newAspect; camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        update(); // 重算 canvas 大小並重繪
-    });
-
+    window.addEventListener('resize', handleResize);
     function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-    update(); animate();
+    handleResize(); update(); animate();
 </script>
 </body>
 </html>
