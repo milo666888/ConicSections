@@ -70,7 +70,7 @@
             #preview-container > div:first-child { display: none; }
             .type-label { font-size: 0.85em; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .slider-thumb { width: 20px; height: 20px; }
-            #pCanvas { display: block; width: 90% !important; height: auto !important; aspect-ratio: 1 / 1; max-width: none !important; max-height: none !important; }
+            #pCanvas { display: block; width: auto !important; height: auto !important; max-width: 90% !important; max-height: 80% !important; aspect-ratio: 1 / 1; }
         }
     </style>
 </head>
@@ -104,12 +104,12 @@
         <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="yN" value="2.0"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
-    <div class="param-group" data-id="x" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
     <div class="param-group" data-id="z" data-min="-10" data-max="10">
         <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="zN" value="0.0"></div>
+        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+    </div>
+    <div class="param-group" data-id="x" data-min="-10" data-max="10">
+        <div class="label-row"><label>平面位移 (X):</label><input type="number" id="xN" value="0.0"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
     </div>
     <div class="param-group unimportant" data-id="coneY" data-min="-5" data-max="5">
