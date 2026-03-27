@@ -259,21 +259,33 @@
         coneGroup.add(topCone, bottomCone);
         const radB_rot = (90 - b) * (Math.PI/180);
         planeGroup.rotation.x = radB_rot; planeGroup.position.set(px, py, pz);
-        const eb = b > 90 ? 180 - b : b, ny = Math.cos(radB_rot), nz = Math.sin(radB_rot), dist = Math.abs((py - cy)*ny + pz*nz);
-        // passV：三個位移全為0才算過頂點
-        const passV = (Math.abs(px) < 0.001 && Math.abs(py - cy) < 0.001 && Math.abs(pz) < 0.001);
-        // 角度比較：精確到小數點後兩位（對應滑桿步進0.01）
+
+        // 平面法向量（繞X軸旋轉，法向量在YZ平面）
+        const ny = Math.cos(radB_rot), nz = Math.sin(radB_rot);
+        // 正確dist：頂點(0,cy,0)到平面的有號距離，法向量已單位化
+        // 平面通過(px,py,pz)，法向量(0,ny,nz)
+        // dist = ny*(cy - py) + nz*(0 - pz)
+        const dist = Math.abs(ny * (cy - py) - nz * pz);
+
+        // passV：只看Y和Z位移是否讓平面通過頂點，X不影響截面形狀
+        const passV = dist < 0.001;
+
+        // eb：平面與圓錐軸的夾角（等效，取0~90範圍）
+        const eb = b > 90 ? 180 - b : b;
+        // 角度比較精確到小數點後兩位
         const ebR = Math.round(eb * 100), aR = Math.round(a * 100);
         let type;
         if (passV) {
-            if (ebR === aR)   type = "一條直線";   // eb = α → 一條直線（恰好平行母線）
-            else if (eb > a)  type = "一個點";      // eb > α → 只切頂點
-            else              type = "兩相交直線";  // eb < α → 兩條相交線
+            // 平面過頂點：只看角度
+            if (ebR === aR)  type = "一條直線";   // eb = α → 平行母線
+            else if (eb > a) type = "一個點";      // eb > α → 只切頂點
+            else             type = "兩相交直線";  // eb < α → 切出兩條交線
         } else {
-            if (ebR === 9000) type = "圓";          // eb = 90.00° → 圓（水平切面）
-            else if (eb > a)  type = "橢圓形";      // α < eb < 90° → 橢圓
-            else if (ebR === aR) type = "拋物線";   // eb = α → 拋物線（恰好平行母線）
-            else              type = "雙曲線";       // eb < α → 雙曲線
+            // 平面不過頂點
+            if (ebR === 9000)  type = "圓";         // β = 90° → 水平切面
+            else if (eb > a)   type = "橢圓形";     // α < eb < 90°
+            else if (ebR===aR) type = "拋物線";     // eb = α → 平行母線
+            else               type = "雙曲線";     // eb < α
         }
         document.getElementById('curveType').innerText = type; draw2D(type, a, eb, dist);
     }
@@ -301,11 +313,14 @@
         }
         else if (type === "橢圓形") {
             ctx.beginPath();
-            const e = Math.cos(beta) / Math.cos(alpha);
-            const a = Math.abs(dist * Math.sin(alpha)*Math.cos(alpha) / (Math.pow(Math.sin(beta),2) - Math.pow(Math.sin(alpha),2)));
-            const b = a * Math.sqrt(Math.max(0, Math.abs(1 - e*e)));
-            ctx.ellipse(mid, mid, Math.min(90, a*scale), Math.min(90, b*scale), 0, 0, Math.PI*2);
-            ctx.stroke();
+            const denom = Math.pow(Math.sin(beta),2) - Math.pow(Math.sin(alpha),2);
+            if (denom > 0.0001) {
+                // 正確幾何推導：a為長軸（沿傾斜方向），b為短軸（垂直方向）
+                const a = Math.abs(dist * Math.sin(alpha) * Math.cos(alpha) / denom);
+                const b = Math.abs(dist * Math.sin(alpha) / Math.sqrt(denom));
+                ctx.ellipse(mid, mid, Math.min(90, a*scale), Math.min(90, b*scale), 0, 0, Math.PI*2);
+                ctx.stroke();
+            }
         }
         else if (type === "拋物線") {
             ctx.beginPath();
