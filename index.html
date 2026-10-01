@@ -4,149 +4,227 @@
     <meta charset="UTF-8">
     <title>圓錐曲線 3D 精確解析教具</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="./shared-shell.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #050505; font-family: system-ui, sans-serif; color: #eee; }
-        
-        .main-title {
-            position: absolute; top: 0; left: 0; z-index: 100;
-            width: 210px; height: 75px; padding: 18px 0 0 18px;
-            background: #0f0f0f; font-size: 1.5em; font-weight: bold; color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0,255,204,0.5); pointer-events: none;
-        }
+        body { margin: 0; }
+        .tts-app { --tts-page-bg: #fff; --tts-plot-bg: #fff; font-family: system-ui, sans-serif; color: #1a1f36; }
 
         .preset-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-        .preset-btn { 
-            flex: 1 1 calc(50% - 6px); background: #222; border: 1px solid #444; color: #00ffcc; 
-            font-size: 11px; padding: 8px 2px; cursor: pointer; border-radius: 4px;
+        .preset-btn {
+            flex: 1 1 calc(50% - 6px); background: #fff; border: 2px solid #d2d2d2; color: #fb5f2c;
+            font-size: 12px; padding: 8px 2px; cursor: pointer; border-radius: 100px;
         }
-        .preset-btn:active { background: #00ffcc; color: #000; }
-        .reset-btn { background: #444; color: #fff; font-weight: bold; border: 1px solid #666; }
+        .preset-btn:active { background: #fb5f2c; color: #fff; }
+        .preset-btn.on { background: #ff9061; border-color: #fb5f2c; color: #fff; font-weight: bold; }
+        .reset-btn { background: #fff; color: #fb5f2c; font-weight: bold; border: 1px solid #fb5f2c; }
 
-        #ui { 
-            position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; 
-            width: 210px; border-right: 1px solid #444; z-index: 10; overflow-y: auto; 
-        }
         .section-title {
-            font-size: 0.85em; color: #888; margin-bottom: 12px;
-            border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            font-size: 0.85em; color: #5a6280; margin-bottom: 12px;
+            border-left: 3px solid #ff9061; padding-left: 8px; font-weight: bold;
         }
-        .type-label { font-size: 1.2em; color: #00ffcc; text-align: center; font-weight: bold; padding: 10px; border-bottom: 1px solid #333; }
-        .param-group { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 12px; }
+        .type-label { font-size: 1.2em; color: #0d9488; text-align: center; font-weight: bold; padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        .param-group { margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        label { font-size: 11px; color: #999; }
-        input[type=number] { width: 55px; background: #222; border: 1px solid #555; color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px; }
+        label { font-size: 11px; color: #5a6280; }
+        input[type=number] { width: 55px; background: #fff; border: 1px solid #d1d5db; color: #1a1f36; border-radius: 3px; padding: 2px; font-size: 11px; }
 
         .custom-slider { position: relative; width: 100%; height: 24px; display: flex; align-items: center; touch-action: pan-y; }
-        .slider-track { position: absolute; width: 100%; height: 2px; background: #444; border-radius: 1px; pointer-events: none; }
-        .slider-thumb { position: absolute; width: 14px; height: 14px; background: #00ffcc; border-radius: 50%; cursor: grab; left: 0; transform: translateX(-50%); z-index: 5; touch-action: none; }
+        .slider-track { position: absolute; width: 100%; height: 2px; background: #d8dcea; border-radius: 1px; pointer-events: none; }
+        .slider-thumb { position: absolute; width: 16px; height: 16px; background: #ff9061; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); border-radius: 50%; cursor: grab; left: 0; transform: translateX(-50%); z-index: 5; touch-action: none; }
 
-        .param-group.unimportant label { color: #555 !important; }
-        .param-group.unimportant .slider-thumb { background: #555 !important; }
-        .param-group.unimportant input[type=number] { color: #555 !important; border-color: #333 !important; }
+        .param-group.unimportant label { color: #9ca3af !important; }
+        .param-group.unimportant .slider-thumb { background: #94a3b8 !important; }
+        .param-group.unimportant input[type=number] { color: #94a3b8 !important; border-color: #e5e7eb !important; }
 
-        #company-logo { position: absolute; top: 15px; right: 15px; width: 70px; z-index: 110; pointer-events: none; }
-
-        #preview-box { 
-            position: absolute; bottom: 20px; right: 20px; 
-            background: rgba(0,0,0,0.92); 
-            border-radius: 8px; border: 1px solid #555; z-index: 5; 
+        #preview-box {
+            background: #fff;
+            border-radius: 8px; border: 1px solid #e2e8f0;
             display: flex; flex-direction: column; overflow: hidden;
         }
-
-        #preview-container { 
-            flex: 1; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; 
+        #preview-container {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
             padding: 10px;
         }
 
-        @media (max-width: 768px) {
-            .main-title { width: auto; height: auto; background: none; left: 15px; top: 15px; font-size: 1.2em; padding: 0; }
-            #company-logo { width: 45px; }
-            #ui { top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0; background: #000; padding: 10px 8px 30px 8px; }
-            #preview-box { top: 65vh; right: 0; left: auto; bottom: 0; width: 40%; height: 35vh; background: #050505; border-radius: 0; border: none; border-top: 1px solid #333; border-left: 1px solid #333; display: flex; flex-direction: column; }
-            #preview-container { flex: 1; padding: 2px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
-            #preview-container > div:first-child { display: none; }
-            .type-label { font-size: 0.85em; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .slider-thumb { width: 20px; height: 20px; }
-            #pCanvas { display: block; width: auto !important; height: auto !important; max-width: 90% !important; max-height: 80% !important; aspect-ratio: 1 / 1; }
-        }
+        /* position:absolute 讓畫布完全脫離文件流，不會反過來把 #viewportCard 撐大
+           （否則畫布尺寸 <- 量測容器 <- 容器尺寸 <- 畫布尺寸 會形成無限迴圈） */
+        #viewportCard canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
+  <div class="tts-app">
+    <header class="tts-header">
+      <div class="tts-header__logo"><img src="company-logo.png" alt="Company Logo"></div>
+      <div class="tts-header__divider"></div>
+      <div class="tts-header__titles">
+        <h1>圓錐曲線模型</h1>
+        <p>拖曳參數觀察圓錐與截面的關係</p>
+      </div>
+    </header>
 
-<div class="main-title">圓錐曲線模型</div>
+    <div class="tts-body">
+      <aside class="tts-left">
+        <div class="tts-left__controls">
+          <div class="tts-left__controls-head">
+            <span class="tts-left__controls-label"><span class="tts-dot"></span>參數設定</span>
+          </div>
+          <div class="tts-left__controls-body">
+            <div class="preset-group">
+              <button class="preset-btn on" id="modeConeBtn" onclick="setMode('cone')" style="flex-basis:100%;">圓錐切割（幾何直觀）</button>
+              <button class="preset-btn" id="modeStdBtn" onclick="setMode('standard')" style="flex-basis:100%;">標準式探索（焦點／準線）</button>
+            </div>
+            <div id="coneControls">
+              <div class="section-title">快速切換</div>
+              <div class="preset-group">
+                <button class="preset-btn reset-btn" onclick="applyPreset(30, 90, 2.0, 0, 0, 0)">RESET</button>
+                <button class="preset-btn" onclick="applyPreset(30, 60, 0.0, 0, 0, 0)">一個點</button>
+                <button class="preset-btn" onclick="applyPreset(30, 90, 4.0, 0, 0, 0)">圓形</button>
+                <button class="preset-btn" onclick="applyPreset(30, 60, 4.0, 0, 0, 0)">橢圓形</button>
+                <button class="preset-btn" onclick="applyPreset(30, 30, 4.0, 0, 0, 0)">拋物線</button>
+                <button class="preset-btn" onclick="applyPreset(30, 15, 2.0, 0, 0, 0)">雙曲線</button>
+                <button class="preset-btn" onclick="applyPreset(30, 30, 0.0, 0, 0, 0)">一條直線</button>
+                <button class="preset-btn" onclick="applyPreset(30, 15, 0.0, 0, 0, 0)">兩相交線</button>
+              </div>
 
-<div id="ui">
-    <div class="section-title">快速切換</div>
-    <div class="preset-group">
-        <button class="preset-btn reset-btn" onclick="applyPreset(30, 90, 2.0, 0, 0, 0)">RESET</button>
-        <button class="preset-btn" onclick="applyPreset(30, 60, 0.0, 0, 0, 0)">一個點</button>
-        <button class="preset-btn" onclick="applyPreset(30, 90, 4.0, 0, 0, 0)">圓形</button>
-        <button class="preset-btn" onclick="applyPreset(30, 60, 4.0, 0, 0, 0)">橢圓形</button>
-        <button class="preset-btn" onclick="applyPreset(30, 30, 4.0, 0, 0, 0)">拋物線</button>
-        <button class="preset-btn" onclick="applyPreset(30, 15, 2.0, 0, 0, 0)">雙曲線</button>
-        <button class="preset-btn" onclick="applyPreset(30, 30, 0.0, 0, 0, 0)">一條直線</button>
-        <button class="preset-btn" onclick="applyPreset(30, 15, 0.0, 0, 0, 0)">兩相交線</button>
-    </div>
+              <div class="section-title">數據設定<br><span style="font-size:0.85em; font-weight:normal; color:#666;">（最多至小數點後兩位）</span></div>
+              <div class="param-group" data-id="alpha" data-min="5" data-max="85">
+                <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group" data-id="beta" data-min="0" data-max="180">
+                <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group" data-id="y" data-min="-10" data-max="10">
+                <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="yN" value="2.0"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group" data-id="z" data-min="-10" data-max="10">
+                <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="zN" value="0.0"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group" data-id="x" data-min="-10" data-max="10">
+                <div class="label-row"><label>平面位移 (X):</label><input type="number" id="xN" value="0.0"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group unimportant" data-id="coneY" data-min="-5" data-max="5">
+                <div class="label-row"><label>圓錐位置 (Z):</label><input type="number" id="coneYN" value="0"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+            </div>
+            <div id="standardControls" style="display:none;">
+              <div class="section-title">曲線類型</div>
+              <div class="preset-group">
+                <button class="preset-btn on" id="stdTypeParabola" onclick="setStdType('parabola')">拋物線</button>
+                <button class="preset-btn" id="stdTypeEllipse" onclick="setStdType('ellipse')">橢圓</button>
+                <button class="preset-btn" id="stdTypeHyperbola" onclick="setStdType('hyperbola')">雙曲線</button>
+              </div>
+              <div class="section-title">參數設定</div>
+              <div class="param-group" data-id="stdA" data-min="0.5" data-max="5">
+                <div class="label-row"><label id="stdALabel">焦距 (p):</label><input type="number" id="stdAN" value="1.5"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+              <div class="param-group" id="stdBGroup" data-id="stdB" data-min="0.5" data-max="5" style="display:none;">
+                <div class="label-row"><label>b（半短軸／虛軸）:</label><input type="number" id="stdBN" value="2"></div>
+                <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
 
-    <div class="section-title">數據設定<br><span style="font-size:0.85em; font-weight:normal; color:#666;">（最多至小數點後兩位）</span></div>
-    <div class="param-group" data-id="alpha" data-min="5" data-max="85">
-        <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-    <div class="param-group" data-id="beta" data-min="0" data-max="180">
-        <div class="label-row"><label>平面夾角 (β):</label><input type="number" id="betaN" value="90"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-    <div class="param-group" data-id="y" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (Z):</label><input type="number" id="yN" value="2.0"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-    <div class="param-group" data-id="z" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (Y):</label><input type="number" id="zN" value="0.0"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-    <div class="param-group" data-id="x" data-min="-10" data-max="10">
-        <div class="label-row"><label>平面位移 (X):</label><input type="number" id="xN" value="0.0"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-    <div class="param-group unimportant" data-id="coneY" data-min="-5" data-max="5">
-        <div class="label-row"><label>圓錐位置 (Z):</label><input type="number" id="coneYN" value="0"></div>
-        <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
-    </div>
-</div>
+      <main class="tts-main">
+        <div class="tts-main__card" id="viewportCard"><canvas id="stdCanvas" style="display:none;"></canvas></div>
+      </main>
 
-<img id="company-logo" src="company-logo.png" alt="Company Logo">
+      <aside class="tts-right">
+        <div class="tts-right__inner">
+          <div id="conePanel">
+          <div id="preview-box">
+            <div class="type-label" id="curveType">圓</div>
+            <div id="preview-container">
+              <div style="font-size: 10px; margin-bottom:8px; text-align:center; color:#999; letter-spacing: 1px;">截面圖形</div>
+              <canvas id="pCanvas" width="220" height="220"></canvas>
+            </div>
+          </div>
 
-<div id="preview-box">
-    <div class="type-label" id="curveType">圓</div>
-    <div id="preview-container">
-        <div style="font-size: 10px; margin-bottom:8px; text-align:center; color:#999; letter-spacing: 1px;">截面圖形</div>
-        <canvas id="pCanvas" width="220" height="220"></canvas>
+          <div class="tts-right__section-title"><span class="tts-dot"></span>公式或學理介紹</div>
+          <div class="tts-right__prose">
+            <p>把兩個對頂圓錐用一個平面去切，依平面與圓錐軸的夾角、以及平面是否通過頂點，會產生不同的圓錐曲線：</p>
+            <p>
+              • 圓：<span class="tts-formula">x² + y² = r²</span>（平面垂直圓錐軸，β = 90°）<br>
+              • 橢圓：<span class="tts-formula"><span class="tts-frac"><span class="tts-frac__num">x²</span><span class="tts-frac__den">a²</span></span> + <span class="tts-frac"><span class="tts-frac__num">y²</span><span class="tts-frac__den">b²</span></span> = 1</span>（α &lt; β &lt; 90°）<br>
+              • 拋物線：<span class="tts-formula">y² = 4px</span>（β = α，平面與母線平行）<br>
+              • 雙曲線：<span class="tts-formula"><span class="tts-frac"><span class="tts-frac__num">x²</span><span class="tts-frac__den">a²</span></span> − <span class="tts-frac"><span class="tts-frac__num">y²</span><span class="tts-frac__den">b²</span></span> = 1</span>（β &lt; α）
+            </p>
+            <p>離心率 <span class="tts-formula">e</span> 描述曲線偏離圓形的程度：圓 <span class="tts-formula">e = 0</span>、橢圓 <span class="tts-formula">0 &lt; e &lt; 1</span>、拋物線 <span class="tts-formula">e = 1</span>、雙曲線 <span class="tts-formula">e &gt; 1</span>。當平面通過圓錐頂點時，切出的則是退化情形：一點、一條直線或兩條相交直線。拖曳左側的「母線夾角 α」與「平面夾角 β」可以直接觀察這些變化。</p>
+          </div>
+          </div>
+
+          <div id="standardPanel" style="display:none;">
+            <div class="tts-datarow">
+              <div class="tts-datarow__title">標準式方程式</div>
+              <div class="tts-datarow__value" id="stdEqVal" style="font-size:18px;"></div>
+            </div>
+            <div class="tts-datarow">
+              <div class="tts-datarow__title">焦點座標</div>
+              <div class="tts-datarow__value" id="stdFocusVal" style="font-size:16px;"></div>
+            </div>
+            <div class="tts-datarow">
+              <div class="tts-datarow__title">準線方程式</div>
+              <div class="tts-datarow__value" id="stdDirectrixVal" style="font-size:16px;"></div>
+            </div>
+            <div class="tts-datarow">
+              <div class="tts-datarow__title">離心率 e</div>
+              <div class="tts-datarow__value" id="stdEccVal"></div>
+            </div>
+            <div class="tts-datarow">
+              <div class="tts-datarow__title">正焦弦長</div>
+              <div class="tts-datarow__value" id="stdLatusVal"></div>
+            </div>
+
+            <div class="tts-right__section-title"><span class="tts-dot"></span>公式或學理介紹</div>
+            <div class="tts-right__prose">
+              <p><strong>焦點與準線的定義</strong>：圓錐曲線上任一點 <span class="tts-formula">P</span> 到焦點的距離，跟到準線的距離，比值恆為離心率 <span class="tts-formula">e</span>（拋物線 <span class="tts-formula">e=1</span>、橢圓 <span class="tts-formula">0&lt;e&lt;1</span>、雙曲線 <span class="tts-formula">e&gt;1</span>）。這是課本推導標準式方程式的出發點。</p>
+              <p><strong>拋物線</strong> <span class="tts-formula">y²=4px</span>：頂點在原點，焦點 <span class="tts-formula">(p,0)</span>，準線 <span class="tts-formula">x=−p</span>，正焦弦（過焦點且垂直對稱軸的弦）長 <span class="tts-formula">4p</span>。</p>
+              <p><strong>橢圓</strong> <span class="tts-formula">x²/a²+y²/b²=1</span>（<span class="tts-formula">a&gt;b&gt;0</span>）：焦點 <span class="tts-formula">(±c,0)</span>，其中 <span class="tts-formula">c=√(a²−b²)</span>；準線 <span class="tts-formula">x=±a²/c</span>；離心率 <span class="tts-formula">e=c/a</span>；正焦弦長 <span class="tts-formula">2b²/a</span>。</p>
+              <p><strong>雙曲線</strong> <span class="tts-formula">x²/a²−y²/b²=1</span>：焦點 <span class="tts-formula">(±c,0)</span>，其中 <span class="tts-formula">c=√(a²+b²)</span>；準線 <span class="tts-formula">x=±a²/c</span>；離心率 <span class="tts-formula">e=c/a</span>（恆大於 1）；正焦弦長 <span class="tts-formula">2b²/a</span>。</p>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
-</div>
+  </div>
 
+<script src="./shared-shell.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    document.body.appendChild(renderer.domElement);
+    const viewportEl = document.getElementById('viewportCard');
+    viewportEl.appendChild(renderer.domElement);
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    scene.add(new THREE.GridHelper(30, 60, 0x222222, 0x222222));
+    scene.add(new THREE.GridHelper(30, 60, 0xcbd5e1, 0xcbd5e1));
     let topCone, bottomCone;
     const coneGroup = new THREE.Group(); scene.add(coneGroup);
     const coneMat = new THREE.MeshPhongMaterial({ color: 0x3498db, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const planeGroup = new THREE.Group();
     const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
+    const planeOutline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(planeMesh.geometry),
+        new THREE.LineBasicMaterial({ color: 0xc62838 })
+    );
+    planeMesh.add(planeOutline);
     planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
     // 座標軸：完整雙向延伸，正方向加箭頭，低調灰色半透明
-    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45, depthTest: false });
-    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45 });
+    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45, depthTest: false });
+    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45 });
 
     function makeFullAxis(posDir, len, mat) {
         const neg = posDir.clone().multiplyScalar(-len);
@@ -162,7 +240,7 @@
     // 箭頭：XY軸關閉 depthTest 確保不被平面擋住
     function makeArrow(position, direction, noDepth) {
         const geo = new THREE.ConeGeometry(0.13, 0.55, 8);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.55, depthTest: !noDepth });
+        const mat = new THREE.MeshBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.55, depthTest: !noDepth });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction.clone().normalize());
         mesh.position.copy(position);
@@ -176,7 +254,7 @@
     function makeAxisLabel(text, noDepth) {
         const c = document.createElement('canvas'); c.width = 64; c.height = 64;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = 'rgba(200,200,200,0.8)'; ctx.font = 'bold 40px sans-serif';
+        ctx.fillStyle = 'rgba(51,65,85,0.85)'; ctx.font = 'bold 40px sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(text, 32, 32);
         const tex = new THREE.CanvasTexture(c);
@@ -191,18 +269,161 @@
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7));
     const light = new THREE.PointLight(0xffffff, 1); light.position.set(10, 20, 10); scene.add(light);
-    const paramData = { coneY: 0 }; 
+    const paramData = { coneY: 0, stdA: 1.5, stdB: 2 };
+    let curMode = 'cone', stdType = 'parabola';
+    const stdCanvas = document.getElementById('stdCanvas');
+    const stdCtx = stdCanvas.getContext('2d');
+    let stdDpr = window.devicePixelRatio || 1, stdW = 0, stdH = 0;
 
-    function handleResize() {
-        const width = window.innerWidth, height = window.innerHeight, isMob = width <= 768;
-        const uiWidth = isMob ? 0 : 210, uiHeight = isMob ? (height * 0.35) : 0;
-        const visibleWidth = width - uiWidth, visibleHeight = height - uiHeight;
-        renderer.setSize(width, height);
-        renderer.setViewport(uiWidth, uiHeight, visibleWidth, visibleHeight);
-        renderer.setScissor(uiWidth, uiHeight, visibleWidth, visibleHeight);
-        renderer.setScissorTest(true);
-        camera.aspect = visibleWidth / visibleHeight; camera.updateProjectionMatrix();
+    function handleResize(rect) {
+        const width = rect.width, height = rect.height, isMob = TTS.isMobile();
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height; camera.updateProjectionMatrix();
         if (isMob) camera.position.set(32, 22, 32); else camera.position.set(25, 18, 25);
+        stdW = width; stdH = height;
+        stdCanvas.width = width * stdDpr; stdCanvas.height = height * stdDpr;
+        stdCtx.setTransform(stdDpr, 0, 0, stdDpr, 0, 0);
+        if (curMode === 'standard') drawStandard();
+    }
+    TTS.observeContainer(viewportEl, handleResize);
+
+    window.setMode = function(mode) {
+        curMode = mode;
+        const isStd = mode === 'standard';
+        document.getElementById('modeConeBtn').classList.toggle('on', !isStd);
+        document.getElementById('modeStdBtn').classList.toggle('on', isStd);
+        document.getElementById('coneControls').style.display = isStd ? 'none' : '';
+        document.getElementById('standardControls').style.display = isStd ? '' : 'none';
+        document.getElementById('conePanel').style.display = isStd ? 'none' : '';
+        document.getElementById('standardPanel').style.display = isStd ? '' : 'none';
+        renderer.domElement.style.display = isStd ? 'none' : 'block';
+        stdCanvas.style.display = isStd ? 'block' : 'none';
+        if (isStd) drawStandard();
+    };
+
+    window.setStdType = function(type) {
+        stdType = type;
+        document.getElementById('stdTypeParabola').classList.toggle('on', type === 'parabola');
+        document.getElementById('stdTypeEllipse').classList.toggle('on', type === 'ellipse');
+        document.getElementById('stdTypeHyperbola').classList.toggle('on', type === 'hyperbola');
+        document.getElementById('stdBGroup').style.display = type === 'parabola' ? 'none' : '';
+        document.getElementById('stdALabel').textContent = type === 'parabola' ? '焦距 (p):' : 'a（半長軸／實軸）:';
+        drawStandard();
+    };
+
+    function fmtStd(v) { if (!isFinite(v)) return '—'; const r = Math.round(v * 1000) / 1000; return r === 0 ? '0' : String(r); }
+
+    function drawStandard() {
+        if (!stdW || !stdH) return;
+        stdCtx.clearRect(0, 0, stdW, stdH);
+        stdCtx.fillStyle = '#fff'; stdCtx.fillRect(0, 0, stdW, stdH);
+
+        const a = Math.max(0.5, paramData.stdA), bRaw = Math.max(0.5, paramData.stdB);
+        const margin = 50;
+        const scale = Math.min((stdW - margin * 2) / 12, (stdH - margin * 2) / 12);
+        const ox = stdW / 2, oy = stdH / 2;
+        const toS = (x, y) => ({ x: ox + x * scale, y: oy - y * scale });
+
+        // grid + axes
+        stdCtx.strokeStyle = '#e5e7eb'; stdCtx.lineWidth = 1;
+        stdCtx.beginPath();
+        for (let gx = -5; gx <= 5; gx++) { const p = toS(gx, 0); stdCtx.moveTo(p.x, 0); stdCtx.lineTo(p.x, stdH); }
+        for (let gy = -5; gy <= 5; gy++) { const p = toS(0, gy); stdCtx.moveTo(0, p.y); stdCtx.lineTo(stdW, p.y); }
+        stdCtx.stroke();
+        stdCtx.strokeStyle = '#94a3b8'; stdCtx.lineWidth = 1.5;
+        stdCtx.beginPath(); stdCtx.moveTo(0, oy); stdCtx.lineTo(stdW, oy); stdCtx.moveTo(ox, 0); stdCtx.lineTo(ox, stdH); stdCtx.stroke();
+
+        let eqText, focusText, directrixText, eccText, latusText, typeLabel;
+
+        if (stdType === 'parabola') {
+            const p = a;
+            typeLabel = '拋物線';
+            eqText = `y² = ${fmtStd(4 * p)}x`;
+            focusText = `(${fmtStd(p)}, 0)`;
+            directrixText = `x = ${fmtStd(-p)}`;
+            eccText = '1';
+            latusText = fmtStd(4 * p);
+
+            stdCtx.strokeStyle = '#0d9488'; stdCtx.lineWidth = 2.5; stdCtx.beginPath();
+            let started = false;
+            for (let py = -5.8; py <= 5.8; py += 0.05) {
+                const px = (py * py) / (4 * p);
+                const s = toS(px, py);
+                if (!started) { stdCtx.moveTo(s.x, s.y); started = true; } else stdCtx.lineTo(s.x, s.y);
+            }
+            stdCtx.stroke();
+            // directrix
+            stdCtx.strokeStyle = '#dc2626'; stdCtx.setLineDash([6, 4]); stdCtx.lineWidth = 1.5;
+            const dx = toS(-p, 0).x;
+            stdCtx.beginPath(); stdCtx.moveTo(dx, 0); stdCtx.lineTo(dx, stdH); stdCtx.stroke();
+            stdCtx.setLineDash([]);
+            // focus
+            const f = toS(p, 0);
+            stdCtx.fillStyle = '#dc2626'; stdCtx.beginPath(); stdCtx.arc(f.x, f.y, 5, 0, Math.PI * 2); stdCtx.fill();
+        } else if (stdType === 'ellipse') {
+            const b = Math.min(bRaw, a - 0.01);
+            const c = Math.sqrt(Math.max(0, a * a - b * b));
+            typeLabel = '橢圓';
+            eqText = `x²/${fmtStd(a * a)} + y²/${fmtStd(b * b)} = 1`;
+            focusText = `(±${fmtStd(c)}, 0)`;
+            directrixText = c > 1e-6 ? `x = ±${fmtStd(a * a / c)}` : '（圓形，無焦點／準線）';
+            eccText = fmtStd(c / a);
+            latusText = fmtStd(2 * b * b / a);
+
+            stdCtx.strokeStyle = '#0d9488'; stdCtx.lineWidth = 2.5; stdCtx.beginPath();
+            stdCtx.ellipse(ox, oy, a * scale, b * scale, 0, 0, Math.PI * 2);
+            stdCtx.stroke();
+            if (c > 1e-6) {
+                stdCtx.strokeStyle = '#dc2626'; stdCtx.setLineDash([6, 4]); stdCtx.lineWidth = 1.5;
+                [1, -1].forEach(s => {
+                    const dx = toS(s * a * a / c, 0).x;
+                    stdCtx.beginPath(); stdCtx.moveTo(dx, 0); stdCtx.lineTo(dx, stdH); stdCtx.stroke();
+                });
+                stdCtx.setLineDash([]);
+                stdCtx.fillStyle = '#dc2626';
+                [1, -1].forEach(s => {
+                    const f = toS(s * c, 0);
+                    stdCtx.beginPath(); stdCtx.arc(f.x, f.y, 5, 0, Math.PI * 2); stdCtx.fill();
+                });
+            }
+        } else {
+            const b = bRaw;
+            const c = Math.sqrt(a * a + b * b);
+            typeLabel = '雙曲線';
+            eqText = `x²/${fmtStd(a * a)} − y²/${fmtStd(b * b)} = 1`;
+            focusText = `(±${fmtStd(c)}, 0)`;
+            directrixText = `x = ±${fmtStd(a * a / c)}`;
+            eccText = fmtStd(c / a);
+            latusText = fmtStd(2 * b * b / a);
+
+            [1, -1].forEach(sgn => {
+                stdCtx.strokeStyle = '#0d9488'; stdCtx.lineWidth = 2.5; stdCtx.beginPath();
+                let started = false;
+                for (let py = -5.8; py <= 5.8; py += 0.05) {
+                    const px = sgn * a * Math.sqrt(1 + (py * py) / (b * b));
+                    const s = toS(px, py);
+                    if (!started) { stdCtx.moveTo(s.x, s.y); started = true; } else stdCtx.lineTo(s.x, s.y);
+                }
+                stdCtx.stroke();
+            });
+            stdCtx.strokeStyle = '#dc2626'; stdCtx.setLineDash([6, 4]); stdCtx.lineWidth = 1.5;
+            [1, -1].forEach(s => {
+                const dx = toS(s * a * a / c, 0).x;
+                stdCtx.beginPath(); stdCtx.moveTo(dx, 0); stdCtx.lineTo(dx, stdH); stdCtx.stroke();
+            });
+            stdCtx.setLineDash([]);
+            stdCtx.fillStyle = '#dc2626';
+            [1, -1].forEach(s => {
+                const f = toS(s * c, 0);
+                stdCtx.beginPath(); stdCtx.arc(f.x, f.y, 5, 0, Math.PI * 2); stdCtx.fill();
+            });
+        }
+
+        document.getElementById('stdEqVal').textContent = eqText;
+        document.getElementById('stdFocusVal').textContent = focusText;
+        document.getElementById('stdDirectrixVal').textContent = directrixText;
+        document.getElementById('stdEccVal').textContent = eccText;
+        document.getElementById('stdLatusVal').textContent = latusText;
     }
 
     document.querySelectorAll('.param-group').forEach(group => {
@@ -251,6 +472,7 @@
     };
 
     function update() {
+        if (curMode === 'standard') { drawStandard(); return; }
         const a = paramData.alpha, b = paramData.beta, px = paramData.x, py = paramData.y, pz = paramData.z, cy = paramData.coneY;
         coneGroup.position.y = cy;
         if (topCone) { coneGroup.remove(topCone); coneGroup.remove(bottomCone); }
@@ -292,7 +514,7 @@
 
     function draw2D(type, aDeg, bDeg, dist) {
         const canvas = document.getElementById('pCanvas'), ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,220,220); ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3.5; ctx.fillStyle = "#00ffcc";
+        ctx.clearRect(0,0,220,220); ctx.strokeStyle = "#0d9488"; ctx.lineWidth = 3.5; ctx.fillStyle = "#0d9488";
         const mid = 110, scale = 25, alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
 
         if (type === "圓") {
@@ -354,9 +576,11 @@
         }
     }
 
-    window.addEventListener('resize', handleResize);
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-    handleResize(); update(); animate();
+    function animate() {
+        requestAnimationFrame(animate);
+        if (curMode === 'cone') { controls.update(); renderer.render(scene, camera); }
+    }
+    update(); animate();
 </script>
 </body>
 </html>
