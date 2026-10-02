@@ -146,8 +146,8 @@
     const coneGroup = new THREE.Group(); scene.add(coneGroup);
     const coneMat = new THREE.MeshPhongMaterial({ color: 0x2563eb, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const planeGroup = new THREE.Group();
-    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xf59e0b, side:THREE.DoubleSide, transparent:true, opacity:0.32}));
-    const planeOutline = new THREE.LineSegments(new THREE.EdgesGeometry(planeMesh.geometry), new THREE.LineBasicMaterial({ color: 0xb45309 }));
+    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xb84a5a, side:THREE.DoubleSide, transparent:true, opacity:0.32}));
+    const planeOutline = new THREE.LineSegments(new THREE.EdgesGeometry(planeMesh.geometry), new THREE.LineBasicMaterial({ color: 0x8f3342 }));
     planeMesh.add(planeOutline);
     planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
     // 座標軸：完整雙向延伸，正方向加箭頭，低調灰色半透明
