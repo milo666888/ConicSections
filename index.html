@@ -6,41 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #fff; font-family: system-ui, sans-serif; color: #eee; }
-        
+        body { margin: 0; overflow: hidden; background: #fff; font-family: system-ui, sans-serif; color: #1e293b; }
+
         .main-title {
             position: absolute; top: 0; left: 0; z-index: 100;
             width: 210px; height: 75px; padding: 18px 0 0 18px;
-            background: #0f0f0f; font-size: 1.5em; font-weight: bold; color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0,255,204,0.5); pointer-events: none;
+            background: #fff; font-size: 1.5em; font-weight: bold; color: #0f766e;
+            text-shadow: none; pointer-events: none;
         }
 
         .preset-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-        .preset-btn { 
-            flex: 1 1 calc(50% - 6px); background: #222; border: 1px solid #444; color: #00ffcc; 
+        .preset-btn {
+            flex: 1 1 calc(50% - 6px); background: #fff; border: 1px solid #cbd5e1; color: #0f766e;
             font-size: 11px; padding: 8px 2px; cursor: pointer; border-radius: 4px;
         }
-        .preset-btn:active { background: #00ffcc; color: #000; }
-        .reset-btn { background: #444; color: #fff; font-weight: bold; border: 1px solid #666; }
+        .preset-btn:hover { background: #f0fdfa; border-color: #0f766e; }
+        .preset-btn:active { background: #0f766e; color: #fff; }
+        .reset-btn { background: #0f766e; color: #fff; font-weight: bold; border: 1px solid #0f766e; }
 
-        #ui { 
+        .reset-btn:hover { background: #115e59; color: #fff; }
+
+        #ui {
             position: absolute; top: 0; left: 0; bottom: 0;
-            background: rgba(15, 15, 15, 0.98); padding: 75px 12px 12px 12px; 
-            width: 210px; border-right: 1px solid #444; z-index: 10; overflow-y: auto; 
+            background: #fff; padding: 75px 12px 12px 12px;
+            width: 210px; border-right: 1px solid #cbd5e1; z-index: 10; overflow-y: auto;
         }
         .section-title {
-            font-size: 0.85em; color: #888; margin-bottom: 12px;
-            border-left: 2px solid #00ffcc; padding-left: 8px; font-weight: bold;
+            font-size: 0.85em; color: #475569; margin-bottom: 12px;
+            border-left: 2px solid #0f766e; padding-left: 8px; font-weight: bold;
         }
-        .type-label { font-size: 1.2em; color: #00ffcc; text-align: center; font-weight: bold; padding: 10px; border-bottom: 1px solid #333; }
-        .param-group { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 12px; }
+        .type-label { font-size: 1.2em; color: #0f766e; text-align: center; font-weight: bold; padding: 10px; border-bottom: 1px solid #e2e8f0; }
+        .param-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        label { font-size: 11px; color: #999; }
-        input[type=number] { width: 55px; background: #222; border: 1px solid #555; color: #00ffcc; border-radius: 3px; padding: 2px; font-size: 11px; }
+        label { font-size: 11px; color: #64748b; }
+        input[type=number] { width: 55px; background: #fff; border: 1px solid #cbd5e1; color: #0f766e; border-radius: 3px; padding: 2px; font-size: 11px; }
 
         .custom-slider { position: relative; width: 100%; height: 24px; display: flex; align-items: center; touch-action: pan-y; }
-        .slider-track { position: absolute; width: 100%; height: 2px; background: #444; border-radius: 1px; pointer-events: none; }
-        .slider-thumb { position: absolute; width: 14px; height: 14px; background: #00ffcc; border-radius: 50%; cursor: grab; left: 0; transform: translateX(-50%); z-index: 5; touch-action: none; }
+        .slider-track { position: absolute; width: 100%; height: 2px; background: #e2e8f0; border-radius: 1px; pointer-events: none; }
+        .slider-thumb { position: absolute; width: 14px; height: 14px; background: #0f766e; border-radius: 50%; cursor: grab; left: 0; transform: translateX(-50%); z-index: 5; touch-action: none; }
 
         .param-group.unimportant label { color: #555 !important; }
         .param-group.unimportant .slider-thumb { background: #555 !important; }
@@ -48,24 +51,24 @@
 
         #company-logo { position: absolute; top: 15px; right: 15px; width: 70px; z-index: 110; pointer-events: none; }
 
-        #preview-box { 
-            position: absolute; bottom: 20px; right: 20px; 
-            background: rgba(0,0,0,0.92); 
-            border-radius: 8px; border: 1px solid #555; z-index: 5; 
+        #preview-box {
+            position: absolute; bottom: 20px; right: 20px;
+            background: #fff;
+            border-radius: 8px; border: 1px solid #cbd5e1; z-index: 5;
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        #preview-container { 
-            flex: 1; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; 
+        #preview-container {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
             padding: 10px;
         }
 
         @media (max-width: 768px) {
             .main-title { width: auto; height: auto; background: none; left: 15px; top: 15px; font-size: 1.2em; padding: 0; }
             #company-logo { width: 45px; }
-            #ui { top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0; background: #000; padding: 10px 8px 30px 8px; }
-            #preview-box { top: 65vh; right: 0; left: auto; bottom: 0; width: 40%; height: 35vh; background: #050505; border-radius: 0; border: none; border-top: 1px solid #333; border-left: 1px solid #333; display: flex; flex-direction: column; }
+            #ui { top: 65vh; left: 0; width: 60%; height: 35vh; bottom: 0; background: #fff; padding: 10px 8px 30px 8px; }
+            #preview-box { top: 65vh; right: 0; left: auto; bottom: 0; width: 40%; height: 35vh; background: #fff; border-radius: 0; border: none; border-top: 1px solid #e2e8f0; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; }
             #preview-container { flex: 1; padding: 2px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
             #preview-container > div:first-child { display: none; }
             .type-label { font-size: 0.85em; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -91,7 +94,7 @@
         <button class="preset-btn" onclick="applyPreset(30, 15, 0.0, 0, 0, 0)">兩相交線</button>
     </div>
 
-    <div class="section-title">數據設定<br><span style="font-size:0.85em; font-weight:normal; color:#666;">（最多至小數點後兩位）</span></div>
+    <div class="section-title">數據設定<br><span style="font-size:0.85em; font-weight:normal; color:#64748b;">（最多至小數點後兩位）</span></div>
     <div class="param-group" data-id="alpha" data-min="5" data-max="85">
         <div class="label-row"><label>母線夾角 (α):</label><input type="number" id="alphaN" value="30"></div>
         <div class="custom-slider"><div class="slider-track"></div><div class="slider-thumb"></div></div>
@@ -123,7 +126,7 @@
 <div id="preview-box">
     <div class="type-label" id="curveType">圓</div>
     <div id="preview-container">
-        <div style="font-size: 10px; margin-bottom:8px; text-align:center; color:#999; letter-spacing: 1px;">截面圖形</div>
+        <div style="font-size: 10px; margin-bottom:8px; text-align:center; color:#64748b; letter-spacing: 1px;">截面圖形</div>
         <canvas id="pCanvas" width="220" height="220"></canvas>
     </div>
 </div>
@@ -138,16 +141,18 @@
     document.body.appendChild(renderer.domElement);
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    scene.add(new THREE.GridHelper(30, 60, 0x222222, 0x222222));
+    scene.add(new THREE.GridHelper(30, 60, 0x94a3b8, 0xe2e8f0));
     let topCone, bottomCone;
     const coneGroup = new THREE.Group(); scene.add(coneGroup);
-    const coneMat = new THREE.MeshPhongMaterial({ color: 0x3498db, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+    const coneMat = new THREE.MeshPhongMaterial({ color: 0x2563eb, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const planeGroup = new THREE.Group();
-    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xff4757, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
+    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xf59e0b, side:THREE.DoubleSide, transparent:true, opacity:0.32}));
+    const planeOutline = new THREE.LineSegments(new THREE.EdgesGeometry(planeMesh.geometry), new THREE.LineBasicMaterial({ color: 0xb45309 }));
+    planeMesh.add(planeOutline);
     planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
     // 座標軸：完整雙向延伸，正方向加箭頭，低調灰色半透明
-    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45, depthTest: false });
-    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: 0.45 });
+    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45, depthTest: false });
+    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45 });
 
     function makeFullAxis(posDir, len, mat) {
         const neg = posDir.clone().multiplyScalar(-len);
@@ -163,7 +168,7 @@
     // 箭頭：XY軸關閉 depthTest 確保不被平面擋住
     function makeArrow(position, direction, noDepth) {
         const geo = new THREE.ConeGeometry(0.13, 0.55, 8);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.55, depthTest: !noDepth });
+        const mat = new THREE.MeshBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.55, depthTest: !noDepth });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction.clone().normalize());
         mesh.position.copy(position);
@@ -192,7 +197,7 @@
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7));
     const light = new THREE.PointLight(0xffffff, 1); light.position.set(10, 20, 10); scene.add(light);
-    const paramData = { coneY: 0 }; 
+    const paramData = { coneY: 0 };
 
     function handleResize() {
         const width = window.innerWidth, height = window.innerHeight, isMob = width <= 768;
@@ -293,7 +298,7 @@
 
     function draw2D(type, aDeg, bDeg, dist) {
         const canvas = document.getElementById('pCanvas'), ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,220,220); ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3.5; ctx.fillStyle = "#00ffcc";
+        ctx.clearRect(0,0,220,220); ctx.strokeStyle = "#0f766e"; ctx.lineWidth = 3.5; ctx.fillStyle = "#0f766e";
         const mid = 110, scale = 25, alpha = aDeg * Math.PI/180, beta = bDeg * Math.PI/180;
 
         if (type === "圓") {
