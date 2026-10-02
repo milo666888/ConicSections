@@ -141,18 +141,16 @@
     document.body.appendChild(renderer.domElement);
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    scene.add(new THREE.GridHelper(30, 60, 0x94a3b8, 0xe2e8f0));
+    scene.add(new THREE.GridHelper(30, 60, 0x64748b, 0xcbd5e1));
     let topCone, bottomCone;
     const coneGroup = new THREE.Group(); scene.add(coneGroup);
-    const coneMat = new THREE.MeshPhongMaterial({ color: 0x2563eb, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+    const coneMat = new THREE.MeshPhongMaterial({ color: 0x1d4ed8, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
     const planeGroup = new THREE.Group();
-    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0xb84a5a, side:THREE.DoubleSide, transparent:true, opacity:0.32}));
-    const planeOutline = new THREE.LineSegments(new THREE.EdgesGeometry(planeMesh.geometry), new THREE.LineBasicMaterial({ color: 0x8f3342 }));
-    planeMesh.add(planeOutline);
+    const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(35,35), new THREE.MeshPhongMaterial({color:0x9f4050, side:THREE.DoubleSide, transparent:true, opacity:0.46}));
     planeMesh.rotation.x = Math.PI/2; planeGroup.add(planeMesh); scene.add(planeGroup);
     // 座標軸：完整雙向延伸，正方向加箭頭，低調灰色半透明
-    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45, depthTest: false });
-    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.45 });
+    const axisMatXY = new THREE.LineBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.7, depthTest: false });
+    const axisMatZ  = new THREE.LineBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.7 });
 
     function makeFullAxis(posDir, len, mat) {
         const neg = posDir.clone().multiplyScalar(-len);
@@ -168,7 +166,7 @@
     // 箭頭：XY軸關閉 depthTest 確保不被平面擋住
     function makeArrow(position, direction, noDepth) {
         const geo = new THREE.ConeGeometry(0.13, 0.55, 8);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.55, depthTest: !noDepth });
+        const mat = new THREE.MeshBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.75, depthTest: !noDepth });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction.clone().normalize());
         mesh.position.copy(position);
@@ -186,7 +184,7 @@
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(text, 32, 32);
         const tex = new THREE.CanvasTexture(c);
-        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: !noDepth, transparent: true, opacity: 0.75 });
+        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: !noDepth, transparent: true, opacity: 0.9 });
         const sprite = new THREE.Sprite(mat); sprite.scale.set(1, 1, 1);
         sprite.renderOrder = 3;
         return sprite;
